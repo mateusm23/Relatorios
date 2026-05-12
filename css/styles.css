@@ -228,6 +228,29 @@ body { font-family: 'DM Sans', sans-serif; background: #EEF3FB; color: var(--azu
 
 .pparecer { background: #F1F5F9; border-radius: 8px; padding: 16px 18px; font-size: 11px; line-height: 1.8; color: #1A2B45; border-left: 4px solid #1B6FBF; white-space: pre-wrap; min-height: 120px; }
 
+/* ── Capa PDF Landscape ── */
+.pdf-capa-land { width: 1123px; height: 794px; background: #1A2B45; position: relative; overflow: hidden; font-family: 'DM Sans', sans-serif; }
+.capal-photo { position: absolute; left: 380px; top: 0; right: 0; bottom: 0; overflow: hidden; }
+.capal-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.capal-photo-ph { width: 100%; height: 100%; background: linear-gradient(135deg, #1e3a6e, #2d5a9e); }
+.capal-photo-overlay { position: absolute; inset: 0; background: rgba(0,0,0,.22); }
+.capal-blue { position: absolute; left: 0; top: 0; bottom: 0; width: 490px; background: #1A2B45; clip-path: polygon(0 0, 100% 0, 78% 100%, 0 100%); z-index: 2; }
+.capal-logo { position: absolute; top: 55px; left: 500px; right: 50px; display: flex; justify-content: center; z-index: 4; }
+.capal-logo img { max-height: 95px; max-width: 270px; object-fit: contain; }
+.capal-nome-obra { position: absolute; top: 210px; left: 500px; right: 50px; text-align: center; z-index: 4; }
+.capal-nome-obra-txt { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 28px; color: #fff; text-shadow: 0 2px 12px rgba(0,0,0,.55); letter-spacing: .02em; line-height: 1.25; }
+.capal-avanco { position: absolute; top: 320px; left: 500px; right: 50px; text-align: center; z-index: 4; }
+.capal-info { position: absolute; bottom: 50px; left: 34px; right: 490px; z-index: 5; }
+.capal-info-ttl { font-family: 'Sora', sans-serif; font-weight: 800; font-size: 19px; color: #fff; margin-bottom: 4px; line-height: 1.25; }
+.capal-info-sub { font-size: 11px; color: rgba(255,255,255,.55); margin-bottom: 10px; }
+.capal-info-div { width: 38px; height: 3px; background: #F5C800; border-radius: 2px; margin-bottom: 11px; }
+.capal-info-row { font-size: 10.5px; color: rgba(255,255,255,.85); margin-bottom: 3px; }
+.capal-info-row-hl { font-size: 10.5px; color: rgba(255,255,255,.85); text-decoration: underline; text-underline-offset: 2px; margin-bottom: 3px; }
+.capal-brand { position: absolute; bottom: 14px; left: 34px; right: 490px; z-index: 5; }
+.capal-brand-txt { font-family: 'Sora', sans-serif; font-size: 8px; color: rgba(255,255,255,.28); letter-spacing: .14em; text-transform: uppercase; }
+.capal-accent-top { position: absolute; top: 0; left: 0; right: 0; height: 4px; background: #F5C800; z-index: 10; }
+.capal-accent-bot { position: absolute; bottom: 0; left: 0; right: 0; height: 4px; background: #F5C800; z-index: 10; }
+
 /* ── Modal ── */
 .modal-overlay { position: fixed; inset: 0; background: rgba(26,43,69,.65); z-index: 8000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
 .modal-overlay.show { display: flex; }

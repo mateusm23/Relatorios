@@ -21,8 +21,8 @@ function makeHdr(nome, logoSrc) {
 
 const sec   = (ico, txt) => `<div class="ps">${ico} ${txt}</div>`;
 const hoje  = () => new Date().toLocaleDateString('pt-BR');
-const footer = (land = false) =>
-  `<div class="pf${land ? ' pf-land' : ''}"><span>Trinus Capital · Gerenciamento de Obras</span><span>Emitido em ${hoje()}</span></div>`;
+const footer = () =>
+  `<div class="pf pf-land"><span>Trinus · Gerenciamento de Obras</span><span>Emitido em ${hoje()}</span></div>`;
 
 // ── Contagem antecipada de páginas ────────────────────────────────────────────
 
@@ -46,43 +46,52 @@ export function countPages() {
 
 function buildCapaPage(semStr, iniStr, fimStr, nome) {
   const avanco = parseInt(v('c_avanco')) || 0;
-  return `<div class="pdf-capa">
-    <div class="capa-foto-wrap">
-      ${DB.foto
-        ? `<img class="capa-foto" src="${DB.foto}">`
-        : `<div class="capa-foto-ph"><div style="font-size:64px;opacity:.3">🏗️</div></div>`}
+  const mesAno = v('c_ini')
+    ? new Date(v('c_ini') + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }).toUpperCase()
+    : `SEMANA ${semStr}`;
+
+  return `<div class="pdf-capa-land">
+    <div class="capal-photo">
+      ${DB.foto ? `<img src="${DB.foto}">` : `<div class="capal-photo-ph"></div>`}
+      <div class="capal-photo-overlay"></div>
     </div>
-    ${DB.logo
-      ? `<img class="capa-logo-overlay" src="${DB.logo}">`
-      : `<div class="capa-logo-overlay" style="background:rgba(255,255,255,.08);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;color:rgba(255,255,255,.4)">🏗️</div>`}
-    <div class="capa-body">
-      <div class="capa-tag">Relatório Semanal de Acompanhamento de Obra</div>
-      <div class="capa-nome">${escapeHtml(nome)}</div>
-      <div class="capa-periodo">Semana ${semStr} · ${iniStr} a ${fimStr}</div>
-      <div class="capa-line"></div>
-      ${avanco > 0 ? `
-      <div class="capa-avanco">
+    <div class="capal-blue"></div>
+    <div class="capal-logo">
+      ${DB.logo ? `<img src="${DB.logo}">` : ''}
+    </div>
+    <div class="capal-nome-obra">
+      <div class="capal-nome-obra-txt">${escapeHtml(nome.toUpperCase())}</div>
+      ${v('c_cod') ? `<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:5px;letter-spacing:.06em">${escapeHtml(v('c_cod'))}</div>` : ''}
+    </div>
+    ${avanco > 0 ? `
+    <div class="capal-avanco">
+      <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px 18px;display:inline-flex;align-items:center;gap:14px;border:1px solid rgba(255,255,255,.12)">
         <div>
-          <div class="capa-avanco-label">Avanço de Entregas</div>
-          <div class="capa-avanco-val">${avanco}%</div>
+          <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px">Avanço de Entregas</div>
+          <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:26px;color:#F5C800">${avanco}%</div>
         </div>
-        <div class="capa-avanco-bar-wrap">
-          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px">Unidades entregues aprovadas</div>
-          <div class="capa-avanco-bar-bg"><div class="capa-avanco-bar-fill" style="width:${avanco}%"></div></div>
-          <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:4px;text-align:right">${avanco}% entregue</div>
+        <div style="width:110px">
+          <div style="background:rgba(255,255,255,.18);border-radius:4px;height:7px;overflow:hidden">
+            <div style="width:${avanco}%;height:100%;background:#F5C800;border-radius:4px"></div>
+          </div>
+          <div style="font-size:7.5px;color:rgba(255,255,255,.35);margin-top:2px;text-align:right">unidades aprovadas</div>
         </div>
-      </div>` : ''}
-      <div class="capa-fields">
-        ${v('c_eng')  ? `<div class="capa-field"><div class="capa-field-lbl">Engenheiro Responsável</div><div class="capa-field-val">${escapeHtml(v('c_eng'))}</div></div>` : ''}
-        ${v('c_obra') ? `<div class="capa-field"><div class="capa-field-lbl">Construtora</div><div class="capa-field-val">${escapeHtml(v('c_obra'))}</div></div>` : ''}
-        ${v('c_cod')  ? `<div class="capa-field"><div class="capa-field-lbl">Código da Obra</div><div class="capa-field-val">${escapeHtml(v('c_cod'))}</div></div>` : ''}
-        <div class="capa-field"><div class="capa-field-lbl">Emissão</div><div class="capa-field-val">${hoje()}</div></div>
       </div>
+    </div>` : ''}
+    <div class="capal-info">
+      <div class="capal-info-ttl">Relatório Semanal de Obra</div>
+      ${v('c_obra') ? `<div class="capal-info-sub">Construtora: ${escapeHtml(v('c_obra'))}</div>` : ''}
+      <div class="capal-info-div"></div>
+      <div class="capal-info-row">${escapeHtml(nome)}</div>
+      <div class="capal-info-row-hl">${mesAno}</div>
+      <div class="capal-info-row-hl">Semana do dia ${iniStr} a ${fimStr}</div>
+      ${v('c_eng') ? `<div style="font-size:9.5px;color:rgba(255,255,255,.45);margin-top:8px">Eng.: ${escapeHtml(v('c_eng'))}</div>` : ''}
     </div>
-    <div class="capa-footer">
-      <div class="capa-footer-brand">TRINUS CAPITAL · GERENCIAMENTO DE OBRAS</div>
-      <div class="capa-footer-date">Relatório gerado automaticamente</div>
+    <div class="capal-brand">
+      <div class="capal-brand-txt">TRINUS · GERENCIAMENTO DE OBRAS</div>
     </div>
+    <div class="capal-accent-top"></div>
+    <div class="capal-accent-bot"></div>
   </div>`;
 }
 
@@ -109,7 +118,7 @@ function buildMapaPage(hdr, pg, total) {
     });
     mapaH += `</tbody></table></div>`;
   });
-  return `<div class="pdf-page">
+  return `<div class="pdf-page-land">
     ${hdr('Mapa de Acompanhamento — Entregas', pg, total)}
     ${sec('🗺️', 'MAPA DE ACOMPANHAMENTO — ENTREGAS')}
     <div class="pleg">
@@ -145,7 +154,7 @@ function buildVistTotalPage(hdr, pg, total) {
     </tr>`;
   }).join('');
 
-  return `<div class="pdf-page">
+  return `<div class="pdf-page-land">
     ${hdr('Análise de Vistorias — Total e Mensal', pg, total)}
     ${sec('📊', 'VISÃO TOTAL — VISTORIAS')}
     <div class="pk-row pk7" style="margin-bottom:20px">
@@ -204,7 +213,7 @@ function buildVistSemPage(hdr, pg, total) {
       `<tr><td>${mot}</td><td style="text-align:center;font-weight:700;color:#B91C1C">${qtd}</td><td style="text-align:center">${reprovs.length ? Math.round(qtd / reprovs.length * 100) + '%' : '—'}</td></tr>`
     ).join('');
 
-  return `<div class="pdf-page">
+  return `<div class="pdf-page-land">
     ${hdr('Análise de Vistorias — Semanal e Reprovações', pg, total)}
     ${sec('📆', 'VISÃO SEMANAL — EVOLUÇÃO POR SEMANA')}
     ${semNote}
@@ -241,26 +250,28 @@ function buildParecerPage(hdr, pg, total, semStr, iniStr, fimStr) {
   const encam  = v('encam');
 
   const parecerHtml = escapeHtml(parecerTxt).replace(/\n/g, '<br>');
-  return `<div class="pdf-page">
+  const hasPontos = posit || atenc || encam;
+  return `<div class="pdf-page-land">
     ${hdr('Parecer Semanal', pg, total)}
     ${sec('📝', 'PARECER SEMANAL DE VISTORIAS')}
     <div style="font-size:9px;color:#94a3b8;margin-bottom:12px">Semana ${semStr} · ${iniStr} a ${fimStr}</div>
-    <div class="pparecer">${parecerHtml}</div>
-    ${(posit || atenc || encam) ? `
-    <div style="display:grid;grid-template-columns:${posit && atenc ? '1fr 1fr' : '1fr'};gap:12px;margin-top:14px">
-      ${posit ? `<div style="background:#D4EDDA;border-radius:8px;padding:12px 14px;border-left:3px solid #217A3C">
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;color:#217A3C;margin-bottom:7px">✅ PONTOS POSITIVOS</div>
-        <div style="font-size:10px;color:#1A2B45;line-height:1.7;white-space:pre-wrap">${escapeHtml(posit)}</div>
-      </div>` : ''}
-      ${atenc ? `<div style="background:#FEE2E2;border-radius:8px;padding:12px 14px;border-left:3px solid #B91C1C">
-        <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;color:#B91C1C;margin-bottom:7px">⚠️ PONTOS DE ATENÇÃO</div>
-        <div style="font-size:10px;color:#1A2B45;line-height:1.7;white-space:pre-wrap">${escapeHtml(atenc)}</div>
+    <div style="display:grid;grid-template-columns:${hasPontos ? '3fr 2fr' : '1fr'};gap:18px">
+      <div class="pparecer">${parecerHtml}</div>
+      ${hasPontos ? `<div style="display:flex;flex-direction:column;gap:11px">
+        ${posit ? `<div style="background:#D4EDDA;border-radius:8px;padding:11px 13px;border-left:3px solid #217A3C">
+          <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;color:#217A3C;margin-bottom:6px">PONTOS POSITIVOS</div>
+          <div style="font-size:9.5px;color:#1A2B45;line-height:1.7;white-space:pre-wrap">${escapeHtml(posit)}</div>
+        </div>` : ''}
+        ${atenc ? `<div style="background:#FEE2E2;border-radius:8px;padding:11px 13px;border-left:3px solid #B91C1C">
+          <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;color:#B91C1C;margin-bottom:6px">PONTOS DE ATENÇÃO</div>
+          <div style="font-size:9.5px;color:#1A2B45;line-height:1.7;white-space:pre-wrap">${escapeHtml(atenc)}</div>
+        </div>` : ''}
+        ${encam ? `<div style="background:#EFF6FF;border-radius:8px;padding:11px 13px;border-left:3px solid #1B6FBF">
+          <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:9.5px;color:#1B6FBF;margin-bottom:6px">ENCAMINHAMENTOS</div>
+          <div style="font-size:9.5px;color:#1A2B45;line-height:1.7;white-space:pre-wrap">${escapeHtml(encam)}</div>
+        </div>` : ''}
       </div>` : ''}
     </div>
-    ${encam ? `<div style="background:#EFF6FF;border-radius:8px;padding:12px 14px;border-left:3px solid #1B6FBF;margin-top:12px">
-      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;color:#1B6FBF;margin-bottom:7px">📌 ENCAMINHAMENTOS</div>
-      <div style="font-size:10px;color:#1A2B45;line-height:1.7;white-space:pre-wrap">${escapeHtml(encam)}</div>
-    </div>` : ''}` : ''}
     ${footer()}
   </div>`;
 }
@@ -284,7 +295,7 @@ function buildDelibPage(rows, cols, titulo, icoPg, bgHdr, hdr, pg, total) {
     return `<td style="white-space:normal;font-size:9px;max-width:160px">${vv || '—'}</td>`;
   }).join('')}</tr>`).join('');
 
-  return `<div class="pdf-page">
+  return `<div class="pdf-page-land">
     ${hdr(titulo.includes('cont') ? 'Deliberações (cont.)' : 'Deliberações', pg, total)}
     ${sec(icoPg, titulo)}
     <table class="pt">
@@ -331,7 +342,7 @@ function buildMfoPage(hdr, pg, total) {
         <tbody>${mfoRows}</tbody>
       </table>
     </div>
-    ${footer(true)}
+    ${footer()}
   </div>`;
 }
 
@@ -353,7 +364,7 @@ function buildChecklistPage(chunk, cols, pgLabel, secLabel, hdr, pg, total) {
     return `<td style="white-space:normal;font-size:10px">${vv || '—'}</td>`;
   }).join('')}</tr>`).join('');
 
-  return `<div class="pdf-page">
+  return `<div class="pdf-page-land">
     ${hdr(pgLabel, pg, total)}
     ${sec('☑️', secLabel)}
     <table class="pt">
@@ -375,7 +386,7 @@ function buildAnexosPage(hdr, pg, total) {
     </div>`).join('');
   const obs = v('anexosObs');
 
-  return `<div class="pdf-page">
+  return `<div class="pdf-page-land">
     ${hdr('Quadro de Anexos', pg, total)}
     ${sec('📎', 'QUADRO DE ANEXOS')}
     ${obs ? `<div style="font-size:10px;color:#64748B;margin-bottom:14px;padding:10px 12px;background:#F1F5F9;border-radius:6px;line-height:1.6">${escapeHtml(obs)}</div>` : ''}
@@ -397,23 +408,23 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
   let pg = 1;
 
   // Capa
-  pages.push({ landscape: false, html: buildCapaPage(semStr, iniStr, fimStr, nome) });
+  pages.push({ landscape: true, html: buildCapaPage(semStr, iniStr, fimStr, nome) });
   pg++;
 
   // Mapa
   if (DB.unidades.length) {
-    pages.push({ landscape: false, html: buildMapaPage(hdr, pg++, total) });
+    pages.push({ landscape: true, html: buildMapaPage(hdr, pg++, total) });
   }
 
   // Vistorias
   if (DB.vistorias.length) {
-    pages.push({ landscape: false, html: buildVistTotalPage(hdr, pg++, total) });
-    pages.push({ landscape: false, html: buildVistSemPage(hdr, pg++, total) });
+    pages.push({ landscape: true, html: buildVistTotalPage(hdr, pg++, total) });
+    pages.push({ landscape: true, html: buildVistSemPage(hdr, pg++, total) });
   }
 
   // Parecer
   if (v('parecer')) {
-    pages.push({ landscape: false, html: buildParecerPage(hdr, pg++, total, semStr, iniStr, fimStr) });
+    pages.push({ landscape: true, html: buildParecerPage(hdr, pg++, total, semStr, iniStr, fimStr) });
   }
 
   // Deliberações
@@ -428,12 +439,12 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
       const chunk = pend.slice(i * ROWS, (i + 1) * ROWS);
       if (!chunk.length && i > 0) break;
       const label = pend.length > ROWS ? `DEMANDAS EM ABERTO (${i * ROWS + 1}–${Math.min((i + 1) * ROWS, pend.length)} de ${pend.length})` : 'DEMANDAS EM ABERTO';
-      pages.push({ landscape: false, html: buildDelibPage(chunk, cols, label, '⏳', '#B45309', hdr, pg++, total) });
+      pages.push({ landscape: true, html: buildDelibPage(chunk, cols, label, '⏳', '#B45309', hdr, pg++, total) });
     }
     for (let i = 0; i < Math.ceil(conc.length / ROWS); i++) {
       const chunk = conc.slice(i * ROWS, (i + 1) * ROWS);
       const label = conc.length > ROWS ? `CONCLUÍDAS (${i * ROWS + 1}–${Math.min((i + 1) * ROWS, conc.length)} de ${conc.length})` : 'CONCLUÍDAS';
-      pages.push({ landscape: false, html: buildDelibPage(chunk, cols, label, '✅', '#217A3C', hdr, pg++, total) });
+      pages.push({ landscape: true, html: buildDelibPage(chunk, cols, label, '✅', '#217A3C', hdr, pg++, total) });
     }
   }
 
@@ -451,13 +462,13 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
       const chunk = DB.checklist.slice(p * ROWS, (p + 1) * ROWS);
       const pgLabel = nPgs > 1 ? `Checklist de Área Comum (Parte ${p + 1}/${nPgs})` : 'Checklist de Área Comum';
       const secLabel = nPgs > 1 ? `CHECKLIST DE ÁREA COMUM — ${p * ROWS + 1} a ${Math.min((p + 1) * ROWS, DB.checklist.length)} de ${DB.checklist.length}` : 'CHECKLIST DE ÁREA COMUM';
-      pages.push({ landscape: false, html: buildChecklistPage(chunk, cols, pgLabel, secLabel, hdr, pg++, total) });
+      pages.push({ landscape: true, html: buildChecklistPage(chunk, cols, pgLabel, secLabel, hdr, pg++, total) });
     }
   }
 
   // Anexos
   if (DB.anexos.some(Boolean)) {
-    pages.push({ landscape: false, html: buildAnexosPage(hdr, pg++, total) });
+    pages.push({ landscape: true, html: buildAnexosPage(hdr, pg++, total) });
   }
 
   return pages;
