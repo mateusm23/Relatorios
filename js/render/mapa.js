@@ -54,7 +54,7 @@ export function renderMapa() {
 
   let html = `<div class="card">
     <div class="card-hd">
-      <div class="card-ico" style="background:var(--azul2)">🗺️</div>
+      <div class="card-ico" style="background:var(--azul2)"><i data-lucide="map"></i></div>
       <div><div class="card-ttl">Mapa de Unidades</div>
       <div class="card-sub">${data.length} unidades · ${Object.keys(blocos).length} bloco(s)</div></div>
     </div>
@@ -80,5 +80,6 @@ export function renderMapa() {
   });
 
   el.innerHTML = html + '</div>';
+  window.lucide?.createIcons();
   markDone(2);
 }

@@ -72,4 +72,16 @@ export function isoWeek(date) {
   return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
 }
 
+export function fmtK(val) {
+  const n = typeof val === 'number' ? val : parseFloat(String(val || '').replace(/[R$\s]/g, '').replace(',', '.'));
+  if (isNaN(n)) return String(val || '—');
+  const abs = Math.abs(n);
+  const fmt = abs >= 1_000_000
+    ? 'R$ ' + (abs / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'M'
+    : abs >= 1_000
+    ? 'R$ ' + (abs / 1_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + 'K'
+    : 'R$ ' + abs.toLocaleString('pt-BR', { minimumFractionDigits: 0 });
+  return n < 0 ? `(${fmt})` : fmt;
+}
+
 export const sleep = ms => new Promise(r => setTimeout(r, ms));

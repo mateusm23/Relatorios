@@ -87,6 +87,9 @@ export function baixarTemplateEmBranco() {
       ['ENGENHEIRO', '', 'Engenheiro responsavel'],
       ['CONSTRUTORA', '', 'Nome da construtora'],
       ['PARECER', '', 'Texto do parecer semanal'],
+      ['POSITIVOS', '', 'Lista de pontos positivos'],
+      ['ATENCAO', '', 'Pontos de atencao / riscos'],
+      ['ENCAM', '', 'Encaminhamentos e responsaveis'],
     ]); wsCapa['!cols'] = [{wch:20},{wch:40},{wch:40}]; window.XLSX.utils.book_append_sheet(wb, wsCapa, 'CAPA'); }
 
     addSh('UNIDADES',     ['BLOCO', 'PAVIMENTO', 'UNIDADE', 'CATEGORIA'],                                        [14, 14, 14, 32]);
@@ -105,7 +108,19 @@ export function baixarTemplate() {
     const bin = atob(TEMPLATE_B64);
     const buf = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
-    const blob = new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const wb = window.XLSX.read(buf, { type: 'array' });
+    const capaName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'CAPA');
+    if (capaName) {
+      const rows = window.XLSX.utils.sheet_to_json(wb.Sheets[capaName], { defval: '', header: 1 });
+      const keys = rows.map(r => String(r[0] || '').toUpperCase());
+      [['POSITIVOS', '', 'Lista de pontos positivos'], ['ATENCAO', '', 'Pontos de atencao / riscos'], ['ENCAM', '', 'Encaminhamentos e responsaveis']]
+        .forEach(row => { if (!keys.includes(row[0])) rows.push(row); });
+      const newWs = window.XLSX.utils.aoa_to_sheet(rows);
+      newWs['!cols'] = [{ wch: 20 }, { wch: 40 }, { wch: 40 }];
+      wb.Sheets[capaName] = newWs;
+    }
+    const out = window.XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url; a.download = 'MODELO_BASE_SEMANAL.xlsx'; a.click();

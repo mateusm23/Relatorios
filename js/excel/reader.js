@@ -56,6 +56,9 @@ export async function processarBase(input) {
         if (campo === 'ENGENHEIRO')  setF('c_eng', valor);
         if (campo === 'CONSTRUTORA') setF('c_obra', valor);
         if (campo === 'PARECER')     setF('parecer', valor);
+        if (campo === 'POSITIVOS')   setF('positivos', valor);
+        if (campo === 'ATENCAO')     setF('atencao', valor);
+        if (campo === 'ENCAM')       setF('encam', valor);
       });
       statusEl.innerHTML += `<div class="aba-status"><div class="aba-dot ok"></div><div class="aba-name">CAPA</div><div class="aba-info">dados da capa carregados</div></div>`;
     }

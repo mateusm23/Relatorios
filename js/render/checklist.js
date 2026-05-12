@@ -2,6 +2,8 @@ import { DB } from '../state.js';
 import { normKey, fmtDate } from '../utils.js';
 import { markDone } from '../nav.js';
 
+const WIDE_COLS = ['DESC', 'OBS', 'ITEM'];
+
 function statusChkTag(val) {
   const s = String(val || '').toLowerCase();
   if (s.includes('não conf') || s.includes('nao conf'))
@@ -22,14 +24,16 @@ export function renderChk() {
   const trs = data.map(r => `<tr>${cols.map(c => {
     const vv = r[c] || '';
     const kk = normKey(c);
-    if (kk === 'STATUS' || kk === 'SITUAÇÃO') return `<td>${statusChkTag(vv)}</td>`;
-    if (kk === 'DATA') return `<td>${fmtDate(vv)}</td>`;
-    return `<td>${vv || '—'}</td>`;
+    const isWide = WIDE_COLS.some(w => kk.includes(w));
+    if (kk === 'STATUS' || kk === 'SITUAÇÃO') return `<td style="text-align:center">${statusChkTag(vv)}</td>`;
+    if (kk === 'DATA') return `<td style="text-align:center">${fmtDate(vv)}</td>`;
+    if (isWide) return `<td>${vv || '—'}</td>`;
+    return `<td style="text-align:center">${vv || '—'}</td>`;
   }).join('')}</tr>`).join('');
 
   document.getElementById('chkContent').innerHTML = `<div class="card">
     <div class="card-hd">
-      <div class="card-ico" style="background:#1D4ED8">☑️</div>
+      <div class="card-ico" style="background:#1D4ED8"><i data-lucide="clipboard-check"></i></div>
       <div><div class="card-ttl">Checklist de Área Comum</div><div class="card-sub">${data.length} itens</div></div>
     </div>
     <div class="tbl-wrap"><table class="tbl-prev">
@@ -37,5 +41,6 @@ export function renderChk() {
       <tbody>${trs}</tbody>
     </table></div>
   </div>`;
+  window.lucide?.createIcons();
   markDone(7);
 }

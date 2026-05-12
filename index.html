@@ -8,6 +8,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://unpkg.com/lucide@0.292.0/dist/umd/lucide.min.js"></script>
 <link rel="stylesheet" href="css/styles.css">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
 </head>
@@ -15,14 +16,14 @@
 
 <header class="hdr">
   <div class="hdr-brand">
-    <div class="hdr-ico">🏗️</div>
+    <div class="hdr-ico"><i data-lucide="hard-hat"></i></div>
     <div>
       <div class="hdr-ttl">Relatório Semanal de Obra</div>
       <div class="hdr-sub">Gerador · Trinus Capital</div>
     </div>
   </div>
   <div class="hdr-btns">
-    <button class="btn-sm" id="btnBaixarTemplate">⬇ Baixar Modelo Base</button>
+    <button class="btn-sm" id="btnBaixarTemplate"><i data-lucide="download"></i> Baixar Modelo Base</button>
   </div>
 </header>
 
@@ -41,9 +42,9 @@
   <div class="sb-item" id="nav7"><div class="sb-num">8</div><span>Checklist</span><span class="sb-ok">✓</span></div>
   <div class="sb-item" id="nav8"><div class="sb-num">9</div><span>Anexos</span><span class="sb-ok">✓</span></div>
   <div class="sb-div"></div>
-  <button class="sb-gerar" id="btnSbGerar">📄 Exportar PDF</button>
-  <button class="sb-xlsx"  id="btnSbXlsx">📊 Exportar Excel</button>
-  <div class="sb-version">v1.2</div>
+  <button class="sb-gerar" id="btnSbGerar"><i data-lucide="file-text"></i> Exportar PDF</button>
+  <button class="sb-xlsx"  id="btnSbXlsx"><i data-lucide="bar-chart-2"></i> Exportar Excel</button>
+  <div class="sb-version">v1.3</div>
 </nav>
 
 <main class="content" id="mainContent">
@@ -57,13 +58,13 @@
   </div>
   <div class="card">
     <div class="card-hd">
-      <div class="card-ico" style="background:var(--azul)">📂</div>
+      <div class="card-ico" style="background:var(--azul)"><i data-lucide="folder-open"></i></div>
       <div><div class="card-ttl">Arquivo Base Semanal</div><div class="card-sub">Abas: UNIDADES · VISTORIAS · DELIBERAÇÕES · MFO · CHECKLIST</div></div>
     </div>
-    <div class="info"><span>ℹ️</span><span>Não tem o modelo? Clique em <strong>"Baixar Modelo Base"</strong> no cabeçalho.</span></div>
+    <div class="info"><i data-lucide="info" style="flex-shrink:0;width:14px;height:14px"></i><span>Não tem o modelo? Clique em <strong>"Baixar Modelo Base"</strong> no cabeçalho.</span></div>
     <div class="upload-hero">
       <input type="file" accept=".xlsx,.xls" id="uploadFile">
-      <div style="font-size:36px;margin-bottom:10px">📊</div>
+      <div style="margin-bottom:10px"><i data-lucide="file-spreadsheet" style="width:40px;height:40px;color:var(--azul2)"></i></div>
       <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--azul)">Clique ou arraste o Excel base</div>
       <div style="font-size:12px;color:var(--cinza);margin-top:5px">UNIDADES · VISTORIAS · DELIBERAÇÕES · MFO · CHECKLIST</div>
     </div>
@@ -80,7 +81,7 @@
     <div class="page-desc">Identificação, período, logotipo e foto da obra</div>
   </div>
   <div class="card">
-    <div class="card-hd"><div class="card-ico" style="background:var(--azul)">📋</div><div><div class="card-ttl">Identificação</div></div></div>
+    <div class="card-hd"><div class="card-ico" style="background:var(--azul)"><i data-lucide="clipboard-list"></i></div><div><div class="card-ttl">Identificação</div></div></div>
     <div class="frow c2">
       <div class="fg"><label>Nome da Obra *</label><input id="c_nome" placeholder="Ex: MAISON BOTÂNICA"></div>
       <div class="fg"><label>Código</label><input id="c_cod" placeholder="Ex: OB-2024-017"></div>
@@ -98,7 +99,7 @@
   </div>
   <div class="card">
     <div class="card-hd">
-      <div class="card-ico" style="background:var(--azul2)">🖼️</div>
+      <div class="card-ico" style="background:var(--azul2)"><i data-lucide="image"></i></div>
       <div><div class="card-ttl">Imagens da Capa</div><div class="card-sub">Logo da empresa (canto superior) e foto da obra (fundo)</div></div>
     </div>
     <div class="frow c2">
@@ -106,14 +107,14 @@
         <label>Logotipo da Empresa</label>
         <div class="img-zone" style="aspect-ratio:3/1" id="logoZone">
           <input type="file" accept="image/*" id="logoInput">
-          <div class="img-zone-lbl"><div style="font-size:24px">🏢</div><div style="font-size:11px;color:var(--cinza);font-weight:600">Logo (PNG transparente)</div></div>
+          <div class="img-zone-lbl"><i data-lucide="building-2" style="width:28px;height:28px;color:var(--cinza)"></i><div style="font-size:11px;color:var(--cinza);font-weight:600">Logo (PNG transparente)</div></div>
         </div>
       </div>
       <div class="fg">
         <label>Foto da Obra / Fachada</label>
         <div class="img-zone" style="aspect-ratio:3/1" id="fotoZone">
           <input type="file" accept="image/*" id="fotoInput">
-          <div class="img-zone-lbl"><div style="font-size:24px">📸</div><div style="font-size:11px;color:var(--cinza);font-weight:600">Foto da obra</div></div>
+          <div class="img-zone-lbl"><i data-lucide="camera" style="width:28px;height:28px;color:var(--cinza)"></i><div style="font-size:11px;color:var(--cinza);font-weight:600">Foto da obra</div></div>
         </div>
       </div>
     </div>
@@ -148,11 +149,11 @@
 <div class="page" id="page4">
   <div class="page-hd"><div class="page-tag">Preenchimento Manual</div><div class="page-ttl">Parecer Semanal</div><div class="page-desc">Análise do engenheiro responsável</div></div>
   <div class="card">
-    <div class="card-hd"><div class="card-ico" style="background:#6D28D9">📝</div><div><div class="card-ttl">Texto do Parecer</div></div></div>
+    <div class="card-hd"><div class="card-ico" style="background:#6D28D9"><i data-lucide="file-pen-line"></i></div><div><div class="card-ttl">Texto do Parecer</div></div></div>
     <div class="fg"><label>Parecer Geral *</label><textarea id="parecer" rows="8" placeholder="Descreva o panorama geral da semana: avanço físico, ocorrências, pontos de atenção..."></textarea></div>
   </div>
   <div class="card">
-    <div class="card-hd"><div class="card-ico" style="background:#217A3C">✅</div><div><div class="card-ttl">Pontos de Atenção</div><div class="card-sub">Opcional — aparece como destaque no PDF</div></div></div>
+    <div class="card-hd"><div class="card-ico" style="background:#217A3C"><i data-lucide="check-circle-2"></i></div><div><div class="card-ttl">Pontos de Atenção</div><div class="card-sub">Opcional — aparece como destaque no PDF</div></div></div>
     <div class="frow c1">
       <div class="fg"><label>Pontos Positivos</label><textarea id="positivos" rows="3" placeholder="• Item positivo 1&#10;• Item positivo 2"></textarea></div>
       <div class="fg"><label>Pontos de Atenção / Riscos</label><textarea id="atencao" rows="3" placeholder="• Atenção 1&#10;• Risco 2"></textarea></div>
@@ -200,7 +201,7 @@
   <div class="page-hd"><div class="page-tag">Opcional</div><div class="page-ttl">Quadro de Anexos</div></div>
   <div class="card">
     <div class="card-hd">
-      <div class="card-ico" style="background:#6B21A8">📎</div>
+      <div class="card-ico" style="background:#6B21A8"><i data-lucide="paperclip"></i></div>
       <div><div class="card-ttl">Imagens Adicionais</div><div class="card-sub">Até 6 imagens com legenda embutidas no PDF</div></div>
     </div>
     <div class="anexo-grid">
@@ -286,13 +287,13 @@
     </div>
     <div class="modal-grid">
       <button class="modal-opt" id="btnTemplateEmBranco">
-        <div style="font-size:36px;margin-bottom:12px">📋</div>
+        <div style="margin-bottom:12px"><i data-lucide="clipboard" style="width:36px;height:36px;color:var(--azul2)"></i></div>
         <div class="modal-opt-ttl">Base em Branco</div>
         <div class="modal-opt-sub">Estrutura pronta com as 5 abas e cabeçalhos — sem dados, para começar do zero</div>
         <div class="modal-opt-badge" style="background:#EFF6FF;color:#1D4ED8">VAZIO</div>
       </button>
       <button class="modal-opt" id="btnTemplateDados">
-        <div style="font-size:36px;margin-bottom:12px">🏗️</div>
+        <div style="margin-bottom:12px"><i data-lucide="hard-hat" style="width:36px;height:36px;color:var(--azul)"></i></div>
         <div class="modal-opt-ttl">Base com Dados de Teste</div>
         <div class="modal-opt-sub">Obra simulada completa — 240 unidades · 538 vistorias · MFO · Deliberações</div>
         <div class="modal-opt-badge" style="background:var(--verde-bg);color:var(--verde)">COM DADOS</div>
@@ -304,7 +305,7 @@
 <!-- Progress overlay -->
 <div class="overlay" id="overlay">
   <div class="overlay-box">
-    <div class="overlay-ico">📄</div>
+    <div class="overlay-ico"><i data-lucide="file-text"></i></div>
     <div class="overlay-ttl" id="overlayTtl">Gerando PDF</div>
     <div class="overlay-sub" id="overlayMsg">Preparando páginas...</div>
     <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>

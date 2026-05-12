@@ -18,19 +18,36 @@ export function calcStats(data) {
   return { t, a, r: rep, n, pa: pct(a), pr: pct(rep), pn: pct(n) };
 }
 
-// Gráfico SVG de barras agrupadas por semana
+function parseRawDate(val) {
+  if (typeof val === 'number' && val > 20000) {
+    const d = window.XLSX?.SSF?.parse_date_code(val);
+    if (d) return new Date(d.y, d.m - 1, d.d);
+  }
+  if (val instanceof Date) return isNaN(val.getTime()) ? null : val;
+  const s = String(val || '').trim();
+  const m1 = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m1) return new Date(+m1[3], +m1[2] - 1, +m1[1]);
+  const m2 = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m2) return new Date(+m2[1], +m2[2] - 1, +m2[3]);
+  return null;
+}
+
+function ddmm(d) {
+  return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
 function buildSemChart(porSem, semKeys) {
   const keys = semKeys.slice(-12);
   if (!keys.length) return '';
 
-  const W = 560, H = 150;
-  const PAD = { top: 16, right: 10, bottom: 28, left: 28 };
+  const W = 660, H = 210;
+  const PAD = { top: 16, right: 10, bottom: 52, left: 28 };
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
 
   const maxVal = Math.max(1, ...keys.map(k => porSem[k].length));
   const groupW = chartW / keys.length;
-  const barW = Math.min(14, groupW * 0.26);
+  const barW = Math.min(16, groupW * 0.26);
 
   let bars = '';
   let xLabels = '';
@@ -52,10 +69,22 @@ function buildSemChart(porSem, semKeys) {
     bar(s.r,  0,           '#B91C1C');
     bar(s.n,  barW + 1,    '#C05621');
 
-    xLabels += `<text x="${cx.toFixed(1)}" y="${(H - 6).toFixed(1)}" text-anchor="middle" font-size="8" fill="#64748B">S${sem}</text>`;
+    // Derive date range from DATA VISTORIA values for this week
+    const dates = porSem[sem]
+      .map(r => parseRawDate(fk(r, 'DATA VISTORIA', 'DATA', 'DT VISTORIA', 'DT_VISTORIA')))
+      .filter(Boolean);
+    const minD = dates.length ? new Date(Math.min(...dates)) : null;
+    const maxD = dates.length ? new Date(Math.max(...dates)) : null;
+    const rangeLbl = minD && maxD ? `${ddmm(minD)}–${ddmm(maxD)}` : '';
+
+    const yLine1 = (H - PAD.bottom + 14).toFixed(1);
+    const yLine2 = (H - PAD.bottom + 26).toFixed(1);
+    xLabels += `<text x="${cx.toFixed(1)}" y="${yLine1}" text-anchor="middle" font-size="8" fill="#64748B" font-weight="700">S${sem}</text>`;
+    if (rangeLbl) {
+      xLabels += `<text x="${cx.toFixed(1)}" y="${yLine2}" text-anchor="middle" font-size="7" fill="#94a3b8">${rangeLbl}</text>`;
+    }
   });
 
-  // linhas guia horizontais
   let guides = '';
   for (let i = 1; i <= 4; i++) {
     const y = (PAD.top + chartH - (i / 4) * chartH).toFixed(1);
@@ -68,9 +97,9 @@ function buildSemChart(porSem, semKeys) {
     <div style="font-size:10px;font-weight:700;color:var(--cinza);margin-bottom:8px;display:flex;gap:14px">
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#217A3C;border-radius:2px;display:inline-block"></span>Aprovadas</span>
       <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#B91C1C;border-radius:2px;display:inline-block"></span>Reprovadas</span>
-      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#C05621;border-radius:2px;display:inline-block"></span>NC</span>
+      <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;background:#C05621;border-radius:2px;display:inline-block"></span>Não Compareceu</span>
     </div>
-    <svg width="100%" viewBox="0 0 ${W} ${H}" style="max-width:${W}px;display:block">
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="display:block">
       ${guides}${bars}${xLabels}
     </svg>
   </div>`;
@@ -94,17 +123,19 @@ export function renderVis() {
     const s = calcStats(porMes[m]);
     return `<tr>
       <td style="font-weight:600;text-transform:capitalize">${m}</td>
-      <td>${s.t}</td>
-      <td style="color:var(--verde);font-weight:700">${s.a}</td>
-      <td style="color:var(--vermelho);font-weight:700">${s.r}</td>
-      <td style="color:var(--laranja);font-weight:700">${s.n}</td>
-      <td>${s.pa}</td><td>${s.pr}</td><td>${s.pn}</td>
+      <td style="text-align:center">${s.t}</td>
+      <td style="text-align:center;color:var(--verde);font-weight:700">${s.a}</td>
+      <td style="text-align:center;color:var(--vermelho);font-weight:700">${s.r}</td>
+      <td style="text-align:center;color:var(--laranja);font-weight:700">${s.n}</td>
+      <td style="text-align:center">${s.pa}</td>
+      <td style="text-align:center">${s.pr}</td>
+      <td style="text-align:center">${s.pn}</td>
     </tr>`;
   }).join('');
 
   el.innerHTML = `
   <div class="card">
-    <div class="card-hd"><div class="card-ico" style="background:#217A3C">📊</div>
+    <div class="card-hd"><div class="card-ico" style="background:#217A3C"><i data-lucide="bar-chart-2"></i></div>
       <div><div class="card-ttl">Visão Total Acumulado</div><div class="card-sub">${total.t} vistorias</div></div>
     </div>
     <div class="kpi-grid kg7">
@@ -118,7 +149,7 @@ export function renderVis() {
     </div>
   </div>
   <div class="card">
-    <div class="card-hd"><div class="card-ico" style="background:var(--azul)">📆</div>
+    <div class="card-hd"><div class="card-ico" style="background:var(--azul)"><i data-lucide="activity"></i></div>
       <div><div class="card-ttl">Evolução Semanal</div><div class="card-sub">Últimas ${Math.min(12, semKeys.length)} semanas</div></div>
     </div>
     ${buildSemChart(porSem, semKeys)}
@@ -131,11 +162,11 @@ export function renderVis() {
     <div class="kpi-grid kg4" id="semKpiArea"></div>
   </div>
   <div class="card">
-    <div class="card-hd"><div class="card-ico" style="background:var(--azul2)">📅</div>
+    <div class="card-hd"><div class="card-ico" style="background:var(--azul2)"><i data-lucide="calendar"></i></div>
       <div><div class="card-ttl">Visão Mensal</div></div>
     </div>
     <div class="tbl-wrap"><table class="tbl-prev">
-      <thead><tr><th>Mês</th><th>Total</th><th>Aprov.</th><th>Reprov.</th><th>NC</th><th>Taxa A.</th><th>Taxa R.</th><th>Taxa NC</th></tr></thead>
+      <thead><tr><th>Mês</th><th style="text-align:center">Total</th><th style="text-align:center">Aprov.</th><th style="text-align:center">Reprov.</th><th style="text-align:center">NC</th><th style="text-align:center">Taxa A.</th><th style="text-align:center">Taxa R.</th><th style="text-align:center">Taxa NC</th></tr></thead>
       <tbody>${mesRows}</tbody>
     </table></div>
   </div>`;
@@ -145,6 +176,7 @@ export function renderVis() {
     renderSemKpi();
     document.getElementById('semSel').addEventListener('change', renderSemKpi);
   }
+  window.lucide?.createIcons();
   markDone(3);
 }
 

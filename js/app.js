@@ -37,9 +37,20 @@ function restoreState() {
 function autoWeek(force = false) {
   const ini = document.getElementById('c_ini');
   const semEl = document.getElementById('c_sem');
+  const fimEl = document.getElementById('c_fim');
   if (!ini || !semEl) return;
   if (!force && semEl.value) return;
-  if (ini.value) semEl.value = isoWeek(new Date(ini.value + 'T12:00:00'));
+  if (!ini.value) return;
+  const d = new Date(ini.value + 'T12:00:00');
+  semEl.value = isoWeek(d);
+  if (fimEl && (force || !fimEl.value)) {
+    const sun = new Date(d);
+    sun.setDate(sun.getDate() + (7 - (sun.getDay() || 7)));
+    const y = sun.getFullYear();
+    const m = String(sun.getMonth() + 1).padStart(2, '0');
+    const day = String(sun.getDate()).padStart(2, '0');
+    fimEl.value = `${y}-${m}-${day}`;
+  }
 }
 
 // ── Modal de escolha de template ─────────────────────────────────────────────
@@ -115,7 +126,6 @@ wireEvents();
 restoreState();
 
 const _ini = document.getElementById('c_ini');
-const _fim = document.getElementById('c_fim');
 if (_ini && !_ini.value) _ini.valueAsDate = new Date();
-if (_fim && !_fim.value) _fim.valueAsDate = new Date();
 autoWeek();
+window.lucide?.createIcons();

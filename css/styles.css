@@ -163,6 +163,13 @@ body { font-family: 'DM Sans', sans-serif; background: #EEF3FB; color: var(--azu
 .spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.25); border-top-color: var(--amarelo); border-radius: 50%; animation: sp .7s linear infinite; flex-shrink: 0; }
 @keyframes sp { to { transform: rotate(360deg); } }
 
+/* ── Lucide icons ── */
+.card-ico svg { width: 18px; height: 18px; stroke: currentColor; }
+.hdr-ico svg { width: 20px; height: 20px; stroke: #fff; }
+.btn-sm svg { width: 14px; height: 14px; stroke: currentColor; }
+.sb-gerar svg, .sb-xlsx svg { width: 15px; height: 15px; stroke: currentColor; }
+.overlay-ico svg { width: 48px; height: 48px; stroke: var(--azul); }
+
 /* ══════════════════════════════════════
    PDF PAGES (off-screen render)
    ══════════════════════════════════════ */
