@@ -55,8 +55,7 @@ export async function gerarXLSX() {
       addSh('CHECKLIST', [c, ...DB.checklist.map(r => c.map(k => r[k] || ''))], [24, 35, 14, 22, 18, 35]);
     }
     if (v('parecer')) {
-      const parecerLinhas = v('parecer').split('
-').map(l => [l]);
+      const parecerLinhas = v('parecer').split('\n').map(l => [l]);
       addSh('PARECER', [
         ['PARECER SEMANAL'], [''], ['Semana ' + semStr],
         [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''], [''],
