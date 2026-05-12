@@ -69,6 +69,26 @@ export async function gerarXLSX() {
   } catch (e) { showToast('err', '❌ Erro: ' + e.message); }
 }
 
+export function baixarTemplateEmBranco() {
+  try {
+    const wb = window.XLSX.utils.book_new();
+    const addSh = (name, headers, cw) => {
+      const ws = window.XLSX.utils.aoa_to_sheet([headers]);
+      if (cw) ws['!cols'] = cw.map(w => ({ wch: w }));
+      window.XLSX.utils.book_append_sheet(wb, ws, name);
+    };
+
+    addSh('UNIDADES',     ['BLOCO', 'PAVIMENTO', 'UNIDADE', 'CATEGORIA'],                                        [14, 14, 14, 32]);
+    addSh('VISTORIAS',    ['UNIDADE', 'MÊS', 'SEMANA Nº', 'DATA VISTORIA', 'STATUS', 'MOTIVO REPROVAÇÃO'],       [14, 14, 12, 16, 20, 36]);
+    addSh('DELIBERAÇÕES', ['#', 'DELIBERAÇÃO', 'RESPONSÁVEL', 'PRAZO', 'STATUS', 'DELTA'],                       [6,  50, 20, 14, 16, 10]);
+    addSh('MFO',          ['CATEGORIA', 'PREVISTO', 'REALIZADO', 'DESVIO', 'DESVIO %'],                          [32, 18, 18, 18, 12]);
+    addSh('CHECKLIST',    ['ITEM', 'DESCRIÇÃO', 'DATA', 'STATUS', 'RESPONSÁVEL', 'OBSERVAÇÃO'],                  [10, 40, 14, 20, 20, 40]);
+
+    window.XLSX.writeFile(wb, 'MODELO_BASE_SEMANAL_VAZIO.xlsx');
+    showToast('ok', '✅ Modelo em branco baixado!');
+  } catch (e) { showToast('err', '❌ Erro: ' + e.message); }
+}
+
 export function baixarTemplate() {
   try {
     const bin = atob(TEMPLATE_B64);

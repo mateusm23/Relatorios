@@ -2,7 +2,7 @@ import { goPage }          from './nav.js';
 import { showToast }        from './toast.js';
 import { loadImg, loadAnexo, removeAnexo, syncAnexoCaption } from './images.js';
 import { processarBase }    from './excel/reader.js';
-import { gerarXLSX, baixarTemplate } from './excel/exporter.js';
+import { gerarXLSX, baixarTemplate, baixarTemplateEmBranco } from './excel/exporter.js';
 import { gerarPDF }         from './pdf/builder.js';
 import { isoWeek }          from './utils.js';
 
@@ -41,6 +41,15 @@ function autoWeek() {
   if (ini.value) semEl.value = isoWeek(new Date(ini.value + 'T12:00:00'));
 }
 
+// ── Modal de escolha de template ─────────────────────────────────────────────
+
+function openModalTemplate() {
+  document.getElementById('modalTemplate').classList.add('show');
+}
+function closeModalTemplate() {
+  document.getElementById('modalTemplate').classList.remove('show');
+}
+
 // ── Registro de todos os event listeners ─────────────────────────────────────
 
 function wireEvents() {
@@ -55,7 +64,21 @@ function wireEvents() {
   });
 
   // Header + sidebar actions
-  document.getElementById('btnBaixarTemplate')?.addEventListener('click', baixarTemplate);
+  document.getElementById('btnBaixarTemplate')?.addEventListener('click', openModalTemplate);
+
+  // Modal template
+  document.getElementById('modalTemplateClose')?.addEventListener('click', closeModalTemplate);
+  document.getElementById('modalTemplate')?.addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModalTemplate();
+  });
+  document.getElementById('btnTemplateEmBranco')?.addEventListener('click', () => {
+    closeModalTemplate();
+    baixarTemplateEmBranco();
+  });
+  document.getElementById('btnTemplateDados')?.addEventListener('click', () => {
+    closeModalTemplate();
+    baixarTemplate();
+  });
   document.getElementById('btnExportPDF')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbGerar')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbXlsx')?.addEventListener('click', gerarXLSX);
