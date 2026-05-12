@@ -71,9 +71,9 @@ export async function processarBase(input) {
         const firstCell = ws['A1'] ? String(ws['A1'].v || '') : '';
         const hasTitle = firstCell.length > 30
           || ['BASE', 'MAPA', 'MFO', 'MODELO'].some(kw => firstCell.toUpperCase().includes(kw));
-        const startRow = hasTitle ? 2 : 1;
+        const startRow = hasTitle ? 1 : 0;
         const raw = window.XLSX.utils.sheet_to_json(ws, { defval: '', raw: true, range: startRow });
-        DB[tipo] = raw.map(nrow);
+        DB[tipo] = raw.map(nrow).filter(r => Object.values(r).some(v => v !== ''));
         ok = true;
         count = DB[tipo].length;
         found++;
