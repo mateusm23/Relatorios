@@ -1,0 +1,11 @@
+# Temporários
+*.tmp
+_b64_template.txt
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+*.code-workspace

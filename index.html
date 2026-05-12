@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gerador · Relatório Semanal de Obra</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<header class="hdr">
+  <div class="hdr-brand">
+    <div class="hdr-ico">🏗️</div>
+    <div>
+      <div class="hdr-ttl">Relatório Semanal de Obra</div>
+      <div class="hdr-sub">Gerador · Trinus Capital</div>
+    </div>
+  </div>
+  <div class="hdr-btns">
+    <button class="btn-sm" id="btnBaixarTemplate">⬇ Baixar Modelo Base</button>
+    <button class="btn-pdf" id="btnExportPDF">📄 Exportar PDF</button>
+  </div>
+</header>
+
+<div class="body">
+<nav class="sidebar">
+  <div class="sb-label" style="margin-top:4px">Etapas</div>
+  <div class="sb-item active" id="nav0"><div class="sb-num">1</div><span>Upload da Base</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item"        id="nav1"><div class="sb-num">2</div><span>Capa</span><span class="sb-ok">✓</span></div>
+  <div class="sb-div"></div>
+  <div class="sb-label">Automático</div>
+  <div class="sb-item" id="nav2"><div class="sb-num">3</div><span>Mapa de Unidades</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item" id="nav3"><div class="sb-num">4</div><span>Vistorias</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item" id="nav4"><div class="sb-num">5</div><span>Parecer</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item" id="nav5"><div class="sb-num">6</div><span>Deliberações</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item" id="nav6"><div class="sb-num">7</div><span>MFO Financeiro</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item" id="nav7"><div class="sb-num">8</div><span>Checklist</span><span class="sb-ok">✓</span></div>
+  <div class="sb-item" id="nav8"><div class="sb-num">9</div><span>Anexos</span><span class="sb-ok">✓</span></div>
+  <div class="sb-div"></div>
+  <button class="sb-gerar" id="btnSbGerar">📄 Exportar PDF</button>
+  <button class="sb-xlsx"  id="btnSbXlsx">📊 Exportar Excel</button>
+</nav>
+
+<main class="content" id="mainContent">
+
+<!-- PAGE 0: UPLOAD -->
+<div class="page on" id="page0">
+  <div class="page-hd">
+    <div class="page-tag">Etapa 1 de 9</div>
+    <div class="page-ttl">Upload da Base de Dados</div>
+    <div class="page-desc">Um único Excel com todas as abas</div>
+  </div>
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:var(--azul)">📂</div>
+      <div><div class="card-ttl">Arquivo Base Semanal</div><div class="card-sub">Abas: UNIDADES · VISTORIAS · DELIBERAÇÕES · MFO · CHECKLIST</div></div>
+    </div>
+    <div class="info"><span>ℹ️</span><span>Não tem o modelo? Clique em <strong>"Baixar Modelo Base"</strong> no cabeçalho.</span></div>
+    <div class="upload-hero">
+      <input type="file" accept=".xlsx,.xls" id="uploadFile">
+      <div style="font-size:36px;margin-bottom:10px">📊</div>
+      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:15px;color:var(--azul)">Clique ou arraste o Excel base</div>
+      <div style="font-size:12px;color:var(--cinza);margin-top:5px">UNIDADES · VISTORIAS · DELIBERAÇÕES · MFO · CHECKLIST</div>
+    </div>
+    <div id="uploadStatus" style="display:none;flex-direction:column;gap:7px;margin-top:14px"></div>
+  </div>
+  <div class="nav-bar"><div></div><button class="btn-next" data-go="1">Próximo →</button></div>
+</div>
+
+<!-- PAGE 1: CAPA -->
+<div class="page" id="page1">
+  <div class="page-hd">
+    <div class="page-tag">Etapa 2 de 9</div>
+    <div class="page-ttl">Capa do Relatório</div>
+    <div class="page-desc">Identificação, período, logotipo e foto da obra</div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-ico" style="background:var(--azul)">📋</div><div><div class="card-ttl">Identificação</div></div></div>
+    <div class="frow c2">
+      <div class="fg"><label>Nome da Obra *</label><input id="c_nome" placeholder="Ex: MAISON BOTÂNICA"></div>
+      <div class="fg"><label>Código</label><input id="c_cod" placeholder="Ex: OB-2024-017"></div>
+    </div>
+    <div class="frow c3">
+      <div class="fg"><label>Início da Semana *</label><input type="date" id="c_ini"></div>
+      <div class="fg"><label>Fim da Semana *</label><input type="date" id="c_fim"></div>
+      <div class="fg"><label>Semana Nº <span style="font-weight:400;text-transform:none;font-size:9px">(auto)</span></label><input type="number" id="c_sem" placeholder="Calculado pela data"></div>
+    </div>
+    <div class="frow c3">
+      <div class="fg"><label>Engenheiro Responsável</label><input id="c_eng" placeholder="Nome"></div>
+      <div class="fg"><label>Construtora</label><input id="c_obra" placeholder="Nome da construtora"></div>
+      <div class="fg"><label>% Avanço Físico</label><input id="c_avanco" type="number" min="0" max="100" placeholder="Ex: 73"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:var(--azul2)">🖼️</div>
+      <div><div class="card-ttl">Imagens da Capa</div><div class="card-sub">Logo da empresa (canto superior) e foto da obra (fundo)</div></div>
+    </div>
+    <div class="frow c2">
+      <div class="fg">
+        <label>Logotipo da Empresa</label>
+        <div class="img-zone" style="aspect-ratio:3/1" id="logoZone">
+          <input type="file" accept="image/*" id="logoInput">
+          <div class="img-zone-lbl"><div style="font-size:24px">🏢</div><div style="font-size:11px;color:var(--cinza);font-weight:600">Logo (PNG transparente)</div></div>
+        </div>
+      </div>
+      <div class="fg">
+        <label>Foto da Obra / Fachada</label>
+        <div class="img-zone" style="aspect-ratio:3/1" id="fotoZone">
+          <input type="file" accept="image/*" id="fotoInput">
+          <div class="img-zone-lbl"><div style="font-size:24px">📸</div><div style="font-size:11px;color:var(--cinza);font-weight:600">Foto da obra</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="0">← Anterior</button>
+    <button class="btn-next" data-go="2">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 2: MAPA -->
+<div class="page" id="page2">
+  <div class="page-hd"><div class="page-tag">Automático</div><div class="page-ttl">Mapa de Unidades</div><div class="page-desc">Gerado da aba UNIDADES</div></div>
+  <div id="mapaContent"><div class="card"><div class="info"><span>ℹ️</span><span>Suba o arquivo base no Passo 1.</span></div></div></div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="1">← Anterior</button>
+    <button class="btn-next" data-go="3">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 3: VISTORIAS -->
+<div class="page" id="page3">
+  <div class="page-hd"><div class="page-tag">Automático</div><div class="page-ttl">Análise de Vistorias</div><div class="page-desc">Total · Mensal · Semanal</div></div>
+  <div id="visContent"><div class="card"><div class="info"><span>ℹ️</span><span>Suba o arquivo base para ver os dados.</span></div></div></div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="2">← Anterior</button>
+    <button class="btn-next" data-go="4">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 4: PARECER -->
+<div class="page" id="page4">
+  <div class="page-hd"><div class="page-tag">Preenchimento Manual</div><div class="page-ttl">Parecer Semanal</div><div class="page-desc">Análise do engenheiro responsável</div></div>
+  <div class="card">
+    <div class="card-hd"><div class="card-ico" style="background:#6D28D9">📝</div><div><div class="card-ttl">Texto do Parecer</div></div></div>
+    <div class="fg"><label>Parecer Geral *</label><textarea id="parecer" rows="8" placeholder="Descreva o panorama geral da semana: avanço físico, ocorrências, pontos de atenção..."></textarea></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><div class="card-ico" style="background:#217A3C">✅</div><div><div class="card-ttl">Pontos de Atenção</div><div class="card-sub">Opcional — aparece como destaque no PDF</div></div></div>
+    <div class="frow c1">
+      <div class="fg"><label>Pontos Positivos</label><textarea id="positivos" rows="3" placeholder="• Item positivo 1&#10;• Item positivo 2"></textarea></div>
+      <div class="fg"><label>Pontos de Atenção / Riscos</label><textarea id="atencao" rows="3" placeholder="• Atenção 1&#10;• Risco 2"></textarea></div>
+      <div class="fg"><label>Encaminhamentos</label><textarea id="encam" rows="3" placeholder="• Ação 1 — Responsável: X — Prazo: dd/mm"></textarea></div>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="3">← Anterior</button>
+    <button class="btn-next" data-go="5">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 5: DELIBERAÇÕES -->
+<div class="page" id="page5">
+  <div class="page-hd"><div class="page-tag">Automático</div><div class="page-ttl">Deliberações</div></div>
+  <div id="delibContent"><div class="card"><div class="info"><span>ℹ️</span><span>Suba o arquivo base.</span></div></div></div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="4">← Anterior</button>
+    <button class="btn-next" data-go="6">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 6: MFO -->
+<div class="page" id="page6">
+  <div class="page-hd"><div class="page-tag">Automático</div><div class="page-ttl">MFO Financeiro</div></div>
+  <div id="mfoContent"><div class="card"><div class="info"><span>ℹ️</span><span>Suba o arquivo base.</span></div></div></div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="5">← Anterior</button>
+    <button class="btn-next" data-go="7">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 7: CHECKLIST -->
+<div class="page" id="page7">
+  <div class="page-hd"><div class="page-tag">Automático</div><div class="page-ttl">Checklist Área Comum</div></div>
+  <div id="chkContent"><div class="card"><div class="info"><span>ℹ️</span><span>Suba o arquivo base.</span></div></div></div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="6">← Anterior</button>
+    <button class="btn-next" data-go="8">Próximo →</button>
+  </div>
+</div>
+
+<!-- PAGE 8: ANEXOS -->
+<div class="page" id="page8">
+  <div class="page-hd"><div class="page-tag">Opcional</div><div class="page-ttl">Quadro de Anexos</div></div>
+  <div class="card">
+    <div class="card-hd">
+      <div class="card-ico" style="background:#6B21A8">📎</div>
+      <div><div class="card-ttl">Imagens Adicionais</div><div class="card-sub">Até 6 imagens com legenda embutidas no PDF</div></div>
+    </div>
+    <div class="anexo-grid">
+      <!-- Slot 0 -->
+      <div class="anexo-slot-wrap">
+        <div class="anexo-slot" id="an0">
+          <input type="file" accept="image/*" id="anFile0">
+          <div class="an-label"><div style="font-size:22px">＋</div><div>Anexo 1</div></div>
+        </div>
+        <button class="an-remove" id="anRemove0">✕ Remover</button>
+        <input class="an-caption" id="anCaption0" placeholder="Legenda do anexo 1...">
+      </div>
+      <!-- Slot 1 -->
+      <div class="anexo-slot-wrap">
+        <div class="anexo-slot" id="an1">
+          <input type="file" accept="image/*" id="anFile1">
+          <div class="an-label"><div style="font-size:22px">＋</div><div>Anexo 2</div></div>
+        </div>
+        <button class="an-remove" id="anRemove1">✕ Remover</button>
+        <input class="an-caption" id="anCaption1" placeholder="Legenda do anexo 2...">
+      </div>
+      <!-- Slot 2 -->
+      <div class="anexo-slot-wrap">
+        <div class="anexo-slot" id="an2">
+          <input type="file" accept="image/*" id="anFile2">
+          <div class="an-label"><div style="font-size:22px">＋</div><div>Anexo 3</div></div>
+        </div>
+        <button class="an-remove" id="anRemove2">✕ Remover</button>
+        <input class="an-caption" id="anCaption2" placeholder="Legenda do anexo 3...">
+      </div>
+      <!-- Slot 3 -->
+      <div class="anexo-slot-wrap">
+        <div class="anexo-slot" id="an3">
+          <input type="file" accept="image/*" id="anFile3">
+          <div class="an-label"><div style="font-size:22px">＋</div><div>Anexo 4</div></div>
+        </div>
+        <button class="an-remove" id="anRemove3">✕ Remover</button>
+        <input class="an-caption" id="anCaption3" placeholder="Legenda do anexo 4...">
+      </div>
+      <!-- Slot 4 -->
+      <div class="anexo-slot-wrap">
+        <div class="anexo-slot" id="an4">
+          <input type="file" accept="image/*" id="anFile4">
+          <div class="an-label"><div style="font-size:22px">＋</div><div>Anexo 5</div></div>
+        </div>
+        <button class="an-remove" id="anRemove4">✕ Remover</button>
+        <input class="an-caption" id="anCaption4" placeholder="Legenda do anexo 5...">
+      </div>
+      <!-- Slot 5 -->
+      <div class="anexo-slot-wrap">
+        <div class="anexo-slot" id="an5">
+          <input type="file" accept="image/*" id="anFile5">
+          <div class="an-label"><div style="font-size:22px">＋</div><div>Anexo 6</div></div>
+        </div>
+        <button class="an-remove" id="anRemove5">✕ Remover</button>
+        <input class="an-caption" id="anCaption5" placeholder="Legenda do anexo 6...">
+      </div>
+    </div>
+    <div class="fg" style="margin-top:14px">
+      <label>Observações gerais</label>
+      <textarea id="anexosObs" rows="3" placeholder="Descrição dos anexos..."></textarea>
+    </div>
+  </div>
+  <div class="nav-bar">
+    <button class="btn-back" data-go="7">← Anterior</button>
+    <button class="btn-next" id="btnExportPDFFinal" style="background:var(--verde)">📄 Exportar PDF</button>
+  </div>
+</div>
+
+</main>
+</div>
+
+<div id="pdfContainer"></div>
+
+<!-- Progress overlay -->
+<div class="overlay" id="overlay">
+  <div class="overlay-box">
+    <div class="overlay-ico">📄</div>
+    <div class="overlay-ttl" id="overlayTtl">Gerando PDF</div>
+    <div class="overlay-sub" id="overlayMsg">Preparando páginas...</div>
+    <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    <div class="prog-lbl" id="progLbl">0%</div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div class="spin" id="tSpin" style="display:none"></div>
+  <span id="tIco"></span><span id="tMsg"></span>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
