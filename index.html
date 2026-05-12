@@ -9,6 +9,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <link rel="stylesheet" href="css/styles.css">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏗️</text></svg>">
 </head>
 <body>
 
@@ -43,6 +44,7 @@
   <div class="sb-div"></div>
   <button class="sb-gerar" id="btnSbGerar">📄 Exportar PDF</button>
   <button class="sb-xlsx"  id="btnSbXlsx">📊 Exportar Excel</button>
+  <div class="sb-version">v1.2</div>
 </nav>
 
 <main class="content" id="mainContent">
@@ -92,7 +94,7 @@
     <div class="frow c3">
       <div class="fg"><label>Engenheiro Responsável</label><input id="c_eng" placeholder="Nome"></div>
       <div class="fg"><label>Construtora</label><input id="c_obra" placeholder="Nome da construtora"></div>
-      <div class="fg"><label>% Avanço Físico</label><input id="c_avanco" type="number" min="0" max="100" placeholder="Ex: 73"></div>
+      <div class="fg"><label>Avanço de Entregas <span style="font-weight:400;text-transform:none;font-size:9px">(auto)</span></label><input id="c_avanco" type="number" min="0" max="100" placeholder="Calculado pela base" readonly style="background:var(--cinza-cl);cursor:default"></div>
     </div>
   </div>
   <div class="card">
@@ -265,7 +267,6 @@
   </div>
   <div class="nav-bar">
     <button class="btn-back" data-go="7">← Anterior</button>
-    <button class="btn-next" id="btnExportPDFFinal" style="background:var(--verde)">📄 Exportar PDF</button>
   </div>
 </div>
 

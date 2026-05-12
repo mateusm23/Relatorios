@@ -63,13 +63,13 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
       ${avanco > 0 ? `
       <div class="capa-avanco">
         <div>
-          <div class="capa-avanco-label">Avanço Físico</div>
+          <div class="capa-avanco-label">Avanço de Entregas</div>
           <div class="capa-avanco-val">${avanco}%</div>
         </div>
         <div class="capa-avanco-bar-wrap">
-          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px">Progresso acumulado da obra</div>
+          <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px">Unidades entregues aprovadas</div>
           <div class="capa-avanco-bar-bg"><div class="capa-avanco-bar-fill" style="width:${avanco}%"></div></div>
-          <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:4px;text-align:right">${avanco}% concluído</div>
+          <div style="font-size:9px;color:rgba(255,255,255,.35);margin-top:4px;text-align:right">${avanco}% entregue</div>
         </div>
       </div>` : ''}
       <div class="capa-fields">

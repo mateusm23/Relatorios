@@ -34,10 +34,11 @@ function restoreState() {
 
 // ── Auto-semana ISO a partir da data de início ─────────────────────────────────
 
-function autoWeek() {
+function autoWeek(force = false) {
   const ini = document.getElementById('c_ini');
   const semEl = document.getElementById('c_sem');
-  if (!ini || !semEl || semEl.value) return; // não sobrescreve se já preenchido
+  if (!ini || !semEl) return;
+  if (!force && semEl.value) return;
   if (ini.value) semEl.value = isoWeek(new Date(ini.value + 'T12:00:00'));
 }
 
@@ -82,7 +83,6 @@ function wireEvents() {
   document.getElementById('btnExportPDF')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbGerar')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbXlsx')?.addEventListener('click', gerarXLSX);
-  document.getElementById('btnExportPDFFinal')?.addEventListener('click', gerarPDF);
 
   // Upload da base
   document.getElementById('uploadFile')?.addEventListener('change', function () { processarBase(this); });
@@ -98,8 +98,8 @@ function wireEvents() {
     document.getElementById('anCaption' + i)?.addEventListener('input', () => syncAnexoCaption(i));
   }
 
-  // Auto-semana ao mudar data de início
-  document.getElementById('c_ini')?.addEventListener('change', autoWeek);
+  // Auto-semana ao mudar data de início — força recálculo sempre
+  document.getElementById('c_ini')?.addEventListener('change', () => autoWeek(true));
 
   // Persistência — salva ao alterar qualquer campo
   FORM_FIELDS.forEach(id => {

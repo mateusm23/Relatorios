@@ -26,7 +26,7 @@ export async function gerarXLSX() {
       ['Semana',        semStr],
       ['Engenheiro',    v('c_eng')],
       ['Construtora',   v('c_obra')],
-      ['Avanço Físico', v('c_avanco') + '%'],
+      ['Avanço de Entregas', v('c_avanco') + '%'],
     ], [30, 50]);
 
     if (DB.unidades.length) {
@@ -76,6 +76,18 @@ export function baixarTemplateEmBranco() {
       if (cw) ws['!cols'] = cw.map(w => ({ wch: w }));
       window.XLSX.utils.book_append_sheet(wb, ws, name);
     };
+
+    addSh('CAPA', [
+      ['CAMPO', 'VALOR', 'INSTRUCAO'],
+      ['NOME', '', 'Nome da obra'],
+      ['CODIGO', '', 'Codigo interno (ex: OB-2024-017)'],
+      ['INI', '', 'Inicio da semana (AAAA-MM-DD)'],
+      ['FIM', '', 'Fim da semana (AAAA-MM-DD)'],
+      ['SEMANA', '', 'Numero da semana ISO (auto se vazio)'],
+      ['ENGENHEIRO', '', 'Engenheiro responsavel'],
+      ['CONSTRUTORA', '', 'Nome da construtora'],
+      ['PARECER', '', 'Texto do parecer semanal'],
+    ], [20, 40, 40]);
 
     addSh('UNIDADES',     ['BLOCO', 'PAVIMENTO', 'UNIDADE', 'CATEGORIA'],                                        [14, 14, 14, 32]);
     addSh('VISTORIAS',    ['UNIDADE', 'MÊS', 'SEMANA Nº', 'DATA VISTORIA', 'STATUS', 'MOTIVO REPROVAÇÃO'],       [14, 14, 12, 16, 20, 36]);
