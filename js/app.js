@@ -109,20 +109,14 @@ function wireEvents() {
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// Em <script type="module"> o DOM já está pronto quando o módulo executa
+// (módulos são deferred por padrão — não precisamos de DOMContentLoaded)
 
-document.addEventListener('DOMContentLoaded', () => {
-  wireEvents();
-  restoreState();
+wireEvents();
+restoreState();
 
-  // Datas padrão somente se não havia estado salvo
-  const ini = document.getElementById('c_ini');
-  const fim = document.getElementById('c_fim');
-  if (ini && !ini.value) ini.valueAsDate = new Date();
-  if (fim && !fim.value) fim.valueAsDate = new Date();
-  autoWeek();
-
-  // Expõe para o console em dev (opcional)
-  if (location.hostname === 'localhost' || location.protocol === 'file:') {
-    window.__RSO = { goPage, showToast, gerarPDF };
-  }
-});
+const _ini = document.getElementById('c_ini');
+const _fim = document.getElementById('c_fim');
+if (_ini && !_ini.value) _ini.valueAsDate = new Date();
+if (_fim && !_fim.value) _fim.valueAsDate = new Date();
+autoWeek();
