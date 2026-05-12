@@ -80,7 +80,6 @@ function wireEvents() {
     closeModalTemplate();
     baixarTemplate();
   });
-  document.getElementById('btnExportPDF')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbGerar')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbXlsx')?.addEventListener('click', gerarXLSX);
 

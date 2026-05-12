@@ -41,7 +41,7 @@ body { font-family: 'DM Sans', sans-serif; background: #EEF3FB; color: var(--azu
 .sb-gerar:hover { background: #e6b800; box-shadow: 0 4px 14px rgba(245,200,0,.4); }
 .sb-xlsx { margin: 4px 12px; background: rgba(255,255,255,.08); color: rgba(255,255,255,.75); border: 1px solid rgba(255,255,255,.15); padding: 9px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: 12px; cursor: pointer; width: calc(100% - 24px); display: flex; align-items: center; justify-content: center; gap: 6px; transition: .2s; }
 .sb-xlsx:hover { background: rgba(255,255,255,.14); color: #fff; }
-.sb-version { font-size: 10px; color: rgba(255,255,255,.2); text-align: center; padding: 14px 16px 10px; letter-spacing: .06em; }
+.sb-version { font-size: 10px; color: rgba(255,255,255,.45); text-align: center; padding: 14px 16px 10px; letter-spacing: .06em; }
 
 /* ── Content ── */
 .content { padding: 24px 28px; overflow-y: auto; }

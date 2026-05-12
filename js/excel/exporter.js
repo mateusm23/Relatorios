@@ -77,7 +77,7 @@ export function baixarTemplateEmBranco() {
       window.XLSX.utils.book_append_sheet(wb, ws, name);
     };
 
-    addSh('CAPA', [
+    { const wsCapa = window.XLSX.utils.aoa_to_sheet([
       ['CAMPO', 'VALOR', 'INSTRUCAO'],
       ['NOME', '', 'Nome da obra'],
       ['CODIGO', '', 'Codigo interno (ex: OB-2024-017)'],
@@ -87,7 +87,7 @@ export function baixarTemplateEmBranco() {
       ['ENGENHEIRO', '', 'Engenheiro responsavel'],
       ['CONSTRUTORA', '', 'Nome da construtora'],
       ['PARECER', '', 'Texto do parecer semanal'],
-    ], [20, 40, 40]);
+    ]); wsCapa['!cols'] = [{wch:20},{wch:40},{wch:40}]; window.XLSX.utils.book_append_sheet(wb, wsCapa, 'CAPA'); }
 
     addSh('UNIDADES',     ['BLOCO', 'PAVIMENTO', 'UNIDADE', 'CATEGORIA'],                                        [14, 14, 14, 32]);
     addSh('VISTORIAS',    ['UNIDADE', 'MÊS', 'SEMANA Nº', 'DATA VISTORIA', 'STATUS', 'MOTIVO REPROVAÇÃO'],       [14, 14, 12, 16, 20, 36]);
