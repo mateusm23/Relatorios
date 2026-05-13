@@ -45,10 +45,7 @@ const footer = () =>
 
 export function countPages() {
   let n = 1; // capa
-  if (DB.unidades.length) {
-    const nBlocos = Object.keys(buildBlocos(DB.unidades)).length || 1;
-    n += Math.ceil((nBlocos + 1) / 4); // +1 for resumo cell
-  }
+  if (DB.unidades.length) n += 1;
   if (DB.vistorias.length) n += 3;
   if (v('parecer'))        n++;
   if (DB.delib.length) {
@@ -82,7 +79,7 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
         : `<div style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:#fff;letter-spacing:.06em">TRINUS</div>`}
     </div>
     ${avanco > 0 ? `
-    <div style="position:absolute;top:130px;left:34px;right:460px;z-index:5">
+    <div style="position:absolute;top:130px;left:34px;max-width:268px;z-index:5">
       <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;border:1px solid rgba(255,255,255,.12)">
         <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Avanço de Entregas</div>
         <div style="display:flex;align-items:center;gap:12px">
@@ -117,6 +114,7 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
 
 function catColor(cat) {
   const s = String(cat || '').toLowerCase();
+  if ((s.includes('não') || s.includes('nao')) && s.includes('aprov')) return { bg: '#B91C1C', fg: '#fff' };
   if (s.includes('aprov')) return { bg: '#217A3C', fg: '#fff' };
   if (s.includes('liberado') || s.includes('lib.')) return { bg: '#1A6EE8', fg: '#fff' };
   if (s.includes('restrição') || s.includes('restricao') || s.includes('rest.')) return { bg: '#B91C1C', fg: '#fff' };
@@ -189,23 +187,17 @@ function buildMapaPages(hdr, pgStart, total) {
   const cells = blocoKeys.map(b => buildBlocoCell(b, blocos[b]));
   cells.push(buildResumoGeral());
 
-  const CHUNK = 4;
-  let pg = pgStart;
-  for (let i = 0; i < cells.length; i += CHUNK) {
-    const chunk = cells.slice(i, i + CHUNK);
-    const grid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">${chunk.map(c => `<div>${c}</div>`).join('')}</div>`;
-    pages.push({
-      landscape: true,
-      html: `<div class="pdf-page-land">
-        ${hdr('Mapa de Acompanhamento — Entregas', pg, total)}
-        ${sec('🗺️', 'MAPA DE ACOMPANHAMENTO — ENTREGAS')}
-        ${legenda}
-        ${grid}
-        ${footer()}
-      </div>`
-    });
-    pg++;
-  }
+  const grid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">${cells.map(c => `<div>${c}</div>`).join('')}</div>`;
+  pages.push({
+    landscape: true,
+    html: `<div class="pdf-page-land">
+      ${hdr('Mapa de Acompanhamento — Entregas', pgStart, total)}
+      ${sec('🗺️', 'MAPA DE ACOMPANHAMENTO — ENTREGAS')}
+      ${legenda}
+      ${grid}
+      ${footer()}
+    </div>`
+  });
   return pages;
 }
 
