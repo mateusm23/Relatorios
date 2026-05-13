@@ -95,15 +95,18 @@ export async function processarBase(input) {
     renderMfo();
     renderChk();
 
-    // Avanço de entregas: % de unidades únicas com pelo menos 1 vistoria aprovada
-    const totalUnid = DB.unidades.length;
-    if (totalUnid > 0 && DB.vistorias.length > 0) {
+    // Avanço de entregas: aprovadas / (total - estoque)
+    if (DB.unidades.length > 0 && DB.vistorias.length > 0) {
       const aprovSet = new Set(
         DB.vistorias.filter(isAprov)
           .map(r => String(fk(r, 'UNIDADE', 'UNID') || '').trim().toUpperCase())
           .filter(Boolean)
       );
-      const pct = Math.round(aprovSet.size / totalUnid * 100);
+      const dispBase = DB.unidades.filter(r => {
+        const cat = String(fk(r, 'CATEGORIA', 'STATUS', 'SITUAÇÃO', 'SITUACAO') || '').toLowerCase();
+        return !cat.includes('estoque');
+      }).length;
+      const pct = dispBase > 0 ? Math.round(aprovSet.size / dispBase * 100) : 0;
       const el = document.getElementById('c_avanco');
       if (el) el.value = pct;
     }

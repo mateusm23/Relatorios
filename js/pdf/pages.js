@@ -1,7 +1,7 @@
 import { DB, MESES } from '../state.js';
 import { v, fk, normKey, escapeHtml, fmtDate, fmtBRL, fmtPct } from '../utils.js';
 import { buildBlocos, getCatCls, getCatAbrev } from '../render/mapa.js';
-import { calcStats, isReprov, getMes, getSem } from '../render/vistorias.js';
+import { calcStats, isReprov, getMes, getSem, buildSemChart } from '../render/vistorias.js';
 
 // ── Helpers compartilhados entre páginas ──────────────────────────────────────
 
@@ -28,7 +28,10 @@ const footer = () =>
 
 export function countPages() {
   let n = 1; // capa
-  if (DB.unidades.length)  n++;
+  if (DB.unidades.length) {
+    const nBlocos = Object.keys(buildBlocos(DB.unidades)).length || 1;
+    n += Math.ceil((nBlocos + 1) / 4); // +1 for resumo cell
+  }
   if (DB.vistorias.length) n += 2;
   if (v('parecer'))        n++;
   if (DB.delib.length) {
@@ -56,25 +59,23 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
       <div class="capal-photo-overlay"></div>
     </div>
     <div class="capal-blue"></div>
-    <div class="capal-logo">
-      ${DB.logo ? `<img src="${DB.logo}">` : ''}
-    </div>
-    <div class="capal-nome-obra">
-      <div class="capal-nome-obra-txt">${escapeHtml(nome.toUpperCase())}</div>
-      ${v('c_cod') ? `<div style="font-size:11px;color:rgba(255,255,255,.5);margin-top:5px;letter-spacing:.06em">${escapeHtml(v('c_cod'))}</div>` : ''}
+    <div style="position:absolute;top:38px;left:34px;z-index:5;max-width:170px">
+      ${DB.logo
+        ? `<img src="${DB.logo}" style="max-height:55px;max-width:170px;object-fit:contain">`
+        : `<div style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:#fff;letter-spacing:.06em">TRINUS</div>`}
     </div>
     ${avanco > 0 ? `
-    <div class="capal-avanco">
-      <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:10px 18px;display:inline-flex;align-items:center;gap:14px;border:1px solid rgba(255,255,255,.12)">
-        <div>
-          <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1px">Avanço de Entregas</div>
+    <div style="position:absolute;top:130px;left:34px;right:460px;z-index:5">
+      <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;border:1px solid rgba(255,255,255,.12)">
+        <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Avanço de Entregas</div>
+        <div style="display:flex;align-items:center;gap:12px">
           <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:26px;color:#F5C800">${avanco}%</div>
-        </div>
-        <div style="width:110px">
-          <div style="background:rgba(255,255,255,.18);border-radius:4px;height:7px;overflow:hidden">
-            <div style="width:${avanco}%;height:100%;background:#F5C800;border-radius:4px"></div>
+          <div style="flex:1">
+            <div style="background:rgba(255,255,255,.18);border-radius:4px;height:7px;overflow:hidden">
+              <div style="width:${avanco}%;height:100%;background:#F5C800;border-radius:4px"></div>
+            </div>
+            <div style="font-size:7px;color:rgba(255,255,255,.35);margin-top:2px">unid. aprovadas / disponíveis</div>
           </div>
-          <div style="font-size:7.5px;color:rgba(255,255,255,.35);margin-top:2px;text-align:right">unidades aprovadas</div>
         </div>
       </div>
     </div>` : ''}
@@ -97,39 +98,98 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
 
 // ── Mapa de Unidades ──────────────────────────────────────────────────────────
 
-function buildMapaPage(hdr, pg, total) {
-  const blocos = buildBlocos(DB.unidades);
-  let mapaH = '';
-  Object.keys(blocos).sort().forEach(bloco => {
-    const pavs = blocos[bloco];
-    const pavNums = Object.keys(pavs).sort((a, b) => Number(b) - Number(a));
-    const allUnids = [...new Set(Object.values(pavs).flatMap(a => a.map(u => u.unid)))].sort();
-    mapaH += `<div style="margin-bottom:14px">
-      <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;color:#1A2B45;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em">${bloco}</div>
-      <table class="pm-tbl">
-        <thead><tr><th>PAV</th>${allUnids.map(u => `<th>${u}</th>`).join('')}</tr></thead>
-        <tbody>`;
-    pavNums.forEach(pav => {
-      const map = {};
-      pavs[pav].forEach(({ unid, cat }) => map[unid] = cat);
-      mapaH += `<tr><th>${pav}</th>${allUnids.map(u =>
-        `<td class="${getCatCls(map[u] || '', 'pm')}">${getCatAbrev(map[u] || '')}</td>`
-      ).join('')}</tr>`;
-    });
-    mapaH += `</tbody></table></div>`;
+function catColor(cat) {
+  const s = String(cat || '').toLowerCase();
+  if (s.includes('aprov')) return { bg: '#217A3C', fg: '#fff' };
+  if (s.includes('liberado') || s.includes('lib.')) return { bg: '#1A6EE8', fg: '#fff' };
+  if (s.includes('restrição') || s.includes('restricao') || s.includes('rest.')) return { bg: '#B91C1C', fg: '#fff' };
+  return { bg: '', fg: '' };
+}
+
+function buildResumoGeral() {
+  const cats = {};
+  DB.unidades.forEach(r => {
+    const cat = String(fk(r, 'CATEGORIA', 'STATUS', 'SITUAÇÃO', 'SITUACAO') || '').trim() || 'SEM CATEGORIA';
+    cats[cat] = (cats[cat] || 0) + 1;
   });
-  return `<div class="pdf-page-land">
-    ${hdr('Mapa de Acompanhamento — Entregas', pg, total)}
-    ${sec('🗺️', 'MAPA DE ACOMPANHAMENTO — ENTREGAS')}
-    <div class="pleg">
-      <div class="pleg-item"><div class="pleg-dot" style="background:#217A3C"></div>Cliente – Aprovou Vistoria</div>
-      <div class="pleg-item"><div class="pleg-dot" style="background:#1A6EE8"></div>Liberado – Vistoria Cliente</div>
-      <div class="pleg-item"><div class="pleg-dot" style="background:#E2E8F0;border:1px solid #cbd5e1"></div>Estoque</div>
-      <div class="pleg-item"><div class="pleg-dot" style="background:#B91C1C"></div>Restrição Comercial</div>
-    </div>
-    ${mapaH}
-    ${footer()}
+  const total = DB.unidades.length;
+  const rows = Object.entries(cats)
+    .sort((a, b) => b[1] - a[1])
+    .map(([cat, qty]) => {
+      const pct = Math.round(qty / total * 100);
+      const { bg, fg } = catColor(cat);
+      const cellStyle = bg ? `background:${bg};color:${fg};` : '';
+      return `<tr>
+        <td style="font-weight:700;font-size:8.5px;padding:5px 8px;${cellStyle}">${cat.toUpperCase()}</td>
+        <td style="text-align:center;font-weight:700;font-size:8.5px;padding:5px 8px;${cellStyle}">${qty}</td>
+        <td style="text-align:center;font-weight:700;font-size:8.5px;padding:5px 8px;${cellStyle}">${pct}%</td>
+      </tr>`;
+    }).join('');
+  return `<div>
+    <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:11px;color:#1A2B45;margin-bottom:7px;text-align:center">Resumo Geral</div>
+    <table style="border-collapse:collapse;width:100%">
+      <thead><tr style="background:#1A2B45">
+        <th style="color:#fff;padding:6px 8px;text-align:left;font-size:8.5px;letter-spacing:.04em">SITUAÇÃO</th>
+        <th style="color:#fff;padding:6px 8px;text-align:center;font-size:8.5px">QTD.</th>
+        <th style="color:#fff;padding:6px 8px;text-align:center;font-size:8.5px">%</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
   </div>`;
+}
+
+function buildBlocoCell(bloco, pavs) {
+  const pavNums = Object.keys(pavs).sort((a, b) => Number(b) - Number(a));
+  const allUnids = [...new Set(Object.values(pavs).flatMap(a => a.map(u => u.unid)))].sort();
+  let html = `<div style="margin-bottom:0">
+    <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;color:#1A2B45;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">${bloco}</div>
+    <table class="pm-tbl">
+      <thead><tr><th>PAV</th>${allUnids.map(u => `<th>${u}</th>`).join('')}</tr></thead>
+      <tbody>`;
+  pavNums.forEach(pav => {
+    const map = {};
+    pavs[pav].forEach(({ unid, cat }) => map[unid] = cat);
+    html += `<tr><th>${pav}</th>${allUnids.map(u =>
+      `<td class="${getCatCls(map[u] || '', 'pm')}">${getCatAbrev(map[u] || '')}</td>`
+    ).join('')}</tr>`;
+  });
+  html += `</tbody></table></div>`;
+  return html;
+}
+
+function buildMapaPages(hdr, pgStart, total) {
+  const pages = [];
+  const blocos = buildBlocos(DB.unidades);
+  const blocoKeys = Object.keys(blocos).sort();
+  const legenda = `<div class="pleg" style="margin-bottom:10px">
+    <div class="pleg-item"><div class="pleg-dot" style="background:#217A3C"></div>Aprovou Vistoria</div>
+    <div class="pleg-item"><div class="pleg-dot" style="background:#1A6EE8"></div>Liberado</div>
+    <div class="pleg-item"><div class="pleg-dot" style="background:#E2E8F0;border:1px solid #cbd5e1"></div>Estoque</div>
+    <div class="pleg-item"><div class="pleg-dot" style="background:#B91C1C"></div>Restrição</div>
+  </div>`;
+
+  // Build all grid cells: bloco cells + resumo as last cell
+  const cells = blocoKeys.map(b => buildBlocoCell(b, blocos[b]));
+  cells.push(buildResumoGeral());
+
+  const CHUNK = 4;
+  let pg = pgStart;
+  for (let i = 0; i < cells.length; i += CHUNK) {
+    const chunk = cells.slice(i, i + CHUNK);
+    const grid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">${chunk.map(c => `<div>${c}</div>`).join('')}</div>`;
+    pages.push({
+      landscape: true,
+      html: `<div class="pdf-page-land">
+        ${hdr('Mapa de Acompanhamento — Entregas', pg, total)}
+        ${sec('🗺️', 'MAPA DE ACOMPANHAMENTO — ENTREGAS')}
+        ${legenda}
+        ${grid}
+        ${footer()}
+      </div>`
+    });
+    pg++;
+  }
+  return pages;
 }
 
 // ── Vistorias: Total + Mensal ─────────────────────────────────────────────────
@@ -213,9 +273,11 @@ function buildVistSemPage(hdr, pg, total) {
       `<tr><td>${mot}</td><td style="text-align:center;font-weight:700;color:#B91C1C">${qtd}</td><td style="text-align:center">${reprovs.length ? Math.round(qtd / reprovs.length * 100) + '%' : '—'}</td></tr>`
     ).join('');
 
+  const chartHtml = semKeys.length ? buildSemChart(porSem, semKeys, 1000, 155, 38) : '';
   return `<div class="pdf-page-land">
     ${hdr('Análise de Vistorias — Semanal e Reprovações', pg, total)}
-    ${sec('📆', 'VISÃO SEMANAL — EVOLUÇÃO POR SEMANA')}
+    ${sec('📆', 'EVOLUÇÃO SEMANAL — VISTORIAS POR SEMANA')}
+    ${chartHtml}
     ${semNote}
     <table class="pt">
       <thead><tr><th style="text-align:center">Sem.</th><th>1ª Data</th><th style="text-align:center">Total</th><th style="text-align:center">Aprov.</th><th style="text-align:center">Reprov.</th><th style="text-align:center">NC</th><th style="text-align:center">Taxa A.</th><th style="text-align:center">Taxa R.</th><th style="text-align:center">Taxa NC</th></tr></thead>
@@ -413,7 +475,7 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
 
   // Mapa
   if (DB.unidades.length) {
-    pages.push({ landscape: true, html: buildMapaPage(hdr, pg++, total) });
+    buildMapaPages(hdr, pg, total).forEach(p => { pages.push(p); pg++; });
   }
 
   // Vistorias

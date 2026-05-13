@@ -36,12 +36,11 @@ function ddmm(d) {
   return `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-function buildSemChart(porSem, semKeys) {
+export function buildSemChart(porSem, semKeys, W = 660, H = 210, PADbot = 52) {
   const keys = semKeys.slice(-12);
   if (!keys.length) return '';
 
-  const W = 660, H = 210;
-  const PAD = { top: 16, right: 10, bottom: 52, left: 28 };
+  const PAD = { top: 16, right: 10, bottom: PADbot, left: 28 };
   const chartW = W - PAD.left - PAD.right;
   const chartH = H - PAD.top - PAD.bottom;
 
@@ -77,8 +76,8 @@ function buildSemChart(porSem, semKeys) {
     const maxD = dates.length ? new Date(Math.max(...dates)) : null;
     const rangeLbl = minD && maxD ? `${ddmm(minD)}–${ddmm(maxD)}` : '';
 
-    const yLine1 = (H - PAD.bottom + 14).toFixed(1);
-    const yLine2 = (H - PAD.bottom + 26).toFixed(1);
+    const yLine1 = (H - PADbot + 14).toFixed(1);
+    const yLine2 = (H - PADbot + 26).toFixed(1);
     xLabels += `<text x="${cx.toFixed(1)}" y="${yLine1}" text-anchor="middle" font-size="8" fill="#64748B" font-weight="700">S${sem}</text>`;
     if (rangeLbl) {
       xLabels += `<text x="${cx.toFixed(1)}" y="${yLine2}" text-anchor="middle" font-size="7" fill="#94a3b8">${rangeLbl}</text>`;
