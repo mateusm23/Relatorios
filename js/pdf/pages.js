@@ -590,13 +590,20 @@ function buildChecklistPage(chunk, cols, pgLabel, secLabel, hdr, pg, total) {
     const kk = normKey(c);
     if (kk === 'STATUS' || kk === 'SITUAÇÃO') {
       const s = String(vv).toLowerCase();
-      let cl = 'ptag-conf';
-      if (s.includes('não conf') || s.includes('nao conf')) cl = 'ptag-nconf';
-      else if (s.includes('parcial')) cl = 'ptag-parc';
-      else if (s.includes('n/a')) cl = '';
+      const cl = s === 'ok' || s.includes('conforme') ? 'ptag-conf'
+               : s.includes('pendente') ? 'ptag-pend'
+               : s.includes('aten')     ? 'ptag-parc'
+               : s.includes('não conf') || s.includes('nao conf') ? 'ptag-nconf'
+               : s.includes('parcial')  ? 'ptag-parc'
+               : 'ptag-conf';
       return `<td><span class="ptag ${cl}">${vv || 'OK'}</span></td>`;
     }
-    if (kk === 'DATA') return `<td style="font-size:9px">${fmtDate(vv)}</td>`;
+    if (kk === 'DATA' || kk.includes('PRAZO')) return `<td style="font-size:9px">${fmtDate(vv)}</td>`;
+    if (kk === 'DELTA') {
+      const n = Number(vv) || 0;
+      const color = n > 0 ? '#C05621' : n < 0 ? '#217A3C' : '#64748B';
+      return `<td style="text-align:center;font-weight:700;color:${color};font-size:9px">${vv !== '' ? vv : '—'}</td>`;
+    }
     return `<td style="white-space:normal;font-size:10px">${vv || '—'}</td>`;
   }).join('')}</tr>`).join('');
 
@@ -692,7 +699,7 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
 
   // Checklist
   if (DB.checklist.length) {
-    const cols = Object.keys(DB.checklist[0]);
+    const cols = Object.keys(DB.checklist[0]).filter(c => normKey(c) !== 'OCULTAR');
     const ROWS = 20;
     const nPgs = Math.ceil(DB.checklist.length / ROWS);
     for (let p = 0; p < nPgs; p++) {

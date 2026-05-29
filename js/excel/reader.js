@@ -124,6 +124,14 @@ export async function processarBase(input) {
     statusEl.innerHTML = '';
     let found = 0;
 
+    // ── CONFIG ───────────────────────────────────────────────────────────────
+    const configName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'CONFIG');
+    if (configName) {
+      const raw2d = window.XLSX.utils.sheet_to_json(wb.Sheets[configName], { header: 1, defval: '', raw: false });
+      // Categorias começam na linha 4 (índice 3): título + instrução + cabeçalho + dados
+      DB.categorias = raw2d.slice(3).map(r => String(r[0] || '').trim()).filter(Boolean);
+    }
+
     // ── CAPA ────────────────────────────────────────────────────────────────
     const capaName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'CAPA');
     if (capaName) {
@@ -152,10 +160,11 @@ export async function processarBase(input) {
         let startRow = hasTitle ? 1 : 0;
         if (hasTitle) {
           const raw2d = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
-          // Procura a primeira linha onde mais de 2 células têm texto (= cabeçalho real)
-          for (let i = 1; i < Math.min(raw2d.length, 5); i++) {
+          // Pula linhas de instrução (células longas > 55 chars) para achar o cabeçalho real
+          for (let i = 1; i < Math.min(raw2d.length, 6); i++) {
             const filled = raw2d[i].filter(v => String(v).trim()).length;
-            if (filled >= 2) { startRow = i; break; }
+            const hasLongCell = raw2d[i].some(v => String(v).trim().length > 55);
+            if (filled >= 2 && !hasLongCell) { startRow = i; break; }
           }
         }
         const raw = window.XLSX.utils.sheet_to_json(ws, { defval: '', raw: true, range: startRow });

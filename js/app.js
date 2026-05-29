@@ -9,7 +9,7 @@ import { isoWeek }          from './utils.js';
 // ── LocalStorage ──────────────────────────────────────────────────────────────
 
 const LS_KEY = 'rso_form_state';
-const FORM_FIELDS = ['c_nome','c_cod','c_ini','c_fim','c_sem','c_eng','c_obra','c_avanco','parecer','positivos','atencao','encam','anexosObs'];
+const FORM_FIELDS = ['c_nome','c_cod','c_ini','c_fim','c_sem','c_eng','c_obra','c_ger','c_avanco','parecer','positivos','atencao','encam','anexosObs'];
 
 function saveState() {
   const state = {};

@@ -1,7 +1,7 @@
 export const DB = {
   unidades: [], vistorias: [], delib: [], mfo: [], checklist: [],
+  categorias: [],
   parecer: '',
-  // each entry: null | { src: dataURL, caption: string }
   anexos: Array(6).fill(null),
   foto: null, logo: null
 };

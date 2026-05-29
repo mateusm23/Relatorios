@@ -60,7 +60,7 @@ body { font-family: 'DM Sans', sans-serif; background: #EEF3FB; color: var(--azu
 
 /* ── Form ── */
 .frow { display: grid; gap: 12px; margin-bottom: 12px; }
-.c2 { grid-template-columns: 1fr 1fr; } .c3 { grid-template-columns: 1fr 1fr 1fr; } .c1 { grid-template-columns: 1fr; }
+.c2 { grid-template-columns: 1fr 1fr; } .c3 { grid-template-columns: 1fr 1fr 1fr; } .c4 { grid-template-columns: 1fr 1fr 1fr 1fr; } .c1 { grid-template-columns: 1fr; }
 .fg { display: flex; flex-direction: column; gap: 4px; }
 .fg label { font-size: 10px; font-weight: 700; color: var(--cinza); text-transform: uppercase; letter-spacing: .06em; }
 .fg input, .fg select, .fg textarea { border: 1.5px solid var(--borda); border-radius: 7px; padding: 8px 11px; font-family: 'DM Sans', sans-serif; font-size: 13px; color: var(--azul); transition: .2s; background: #fff; width: 100%; }
