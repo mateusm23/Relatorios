@@ -102,18 +102,26 @@ export async function gerarXLSX() {
 
 // ── Downloads diretos dos templates (arquivos no repositório) ─────────────────
 
-function downloadFile(path, filename) {
-  const a = document.createElement('a');
-  a.href = path;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+async function downloadFile(path, filename) {
+  showToast('load', 'Preparando download...');
+  try {
+    const res = await fetch(path);
+    if (!res.ok) throw new Error('Arquivo não encontrado');
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showToast('ok', '✅ Download iniciado!');
+  } catch (e) { showToast('err', '❌ Erro: ' + e.message); }
 }
 
 export function baixarTemplateEmBranco() {
   downloadFile('templates/BASE_SEMANAL_VAZIO.xlsx', 'BASE_SEMANAL_VAZIO.xlsx');
-  showToast('ok', '✅ Download iniciado!');
 }
 
 // ── Template com dados de exemplo ────────────────────────────────────────────
