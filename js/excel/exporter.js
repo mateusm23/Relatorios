@@ -100,96 +100,26 @@ export async function gerarXLSX() {
   } catch (e) { showToast('err', '❌ Erro: ' + e.message); }
 }
 
-// ── Template em branco ────────────────────────────────────────────────────────
+// ── Downloads diretos dos templates (arquivos no repositório) ─────────────────
+
+function downloadFile(path, filename) {
+  const a = document.createElement('a');
+  a.href = path;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
 
 export function baixarTemplateEmBranco() {
-  try {
-    const wb = window.XLSX.utils.book_new();
-    const addSh = (name, aoa, cw) => {
-      const ws = window.XLSX.utils.aoa_to_sheet(aoa);
-      if (cw) ws['!cols'] = cw.map(w => ({ wch: w }));
-      window.XLSX.utils.book_append_sheet(wb, ws, name);
-    };
-
-    // CONFIG
-    addSh('CONFIG', [
-      ['CONFIGURAÇÕES — CATEGORIAS DE UNIDADES'],
-      ['Define até 8 categorias. Estas serão as opções disponíveis na aba UNIDADES.'],
-      ['CATEGORIA'],
-      ['Aprovou Vistoria'],
-      ['Liberado'],
-      ['Estoque'],
-      ['Restrição'],
-      [''], [''], [''], [''],
-    ], [40]);
-
-    // CAPA
-    addSh('CAPA', [
-      ['CAPA — RELATÓRIO SEMANAL DE OBRA'],
-      [''],
-      ['OBRA',               ''],
-      ['CONSTRUTORA',        ''],
-      ['GERENCIADORA',       ''],
-      ['ENGENHEIRO',         ''],
-      [''],
-      ['DATA INICIO',        ''],
-      ['DATA FIM',           ''],
-      ['SEMANA No',          ''],
-      ['AVANCO DE ENTREGAS', ''],
-      [''],
-      ['PONTOS POSITIVOS',   ''],
-      ['PONTOS DE ATENCAO',  ''],
-      ['ENCAMINHAMENTOS',    ''],
-    ], [25, 70]);
-
-    // PARECER
-    addSh('PARECER', [
-      ['PARECER TÉCNICO'],
-      ['Descreva o parecer técnico da semana abaixo:'],
-      [''],
-    ], [110]);
-
-    // UNIDADES
-    addSh('UNIDADES', [
-      ['MAPA DE UNIDADES'],
-      ['BLOCO: identificador do bloco (ex: A, B, Torre 1) | PAVIMENTO: número do andar | UNIDADE: código único (ex: A-101) | CATEGORIA: conforme aba CONFIG'],
-      ['BLOCO', 'PAVIMENTO', 'UNIDADE', 'CATEGORIA'],
-    ], [16, 16, 16, 28]);
-
-    // VISTORIAS
-    addSh('VISTORIAS', [
-      ['REGISTRO DE VISTORIAS'],
-      ['UNIDADE: código da unidade | DATA VISTORIA: dd/mm/aaaa | STATUS: Aprovado / Reprovado / Não Compareceu | MOTIVO REPROVAÇÃO: somente se reprovado | SEMANA Nº: auto | MÊS: auto'],
-      ['UNIDADE', 'DATA VISTORIA', 'STATUS', 'MOTIVO REPROVAÇÃO', 'SEMANA Nº', 'MÊS'],
-    ], [16, 16, 22, 36, 12, 14]);
-
-    // DELIBERAÇÕES
-    addSh('DELIBERAÇÕES', [
-      ['REGISTRO DE DELIBERAÇÕES'],
-      ['DATA CADASTRO: abertura | TIPO: Técnico / Adm. / Jurídico | DESCRIÇÃO: detalhamento | 1º PRAZO: prazo original | PRAZO ATUAL: prazo vigente | DELTA DIAS: calculado | RESPONSÁVEL: nome | STATUS: Pendente / Em Andamento / Concluído'],
-      ['DATA CADASTRO', 'TIPO', 'DESCRIÇÃO', '1º PRAZO', 'PRAZO ATUAL', 'DELTA DIAS', 'RESPONSÁVEL', 'STATUS'],
-    ], [14, 16, 52, 14, 14, 12, 22, 16]);
-
-    // MFO
-    addSh('MFO', [
-      ['MONITORAMENTO FINANCEIRO DE OBRA (MFO)'],
-      ['Preencha os campos em branco. Campos calculados: SALDO DE CONTRATOS, DESVIOS. Valores em R$.'],
-      ['DESCRIÇÃO', 'VALOR ORÇADO', 'VALOR ATUALIZADO', 'PAGO', 'A PAGAR', 'SALDO DE CONTRATOS', 'COMPROMETIDO', 'SALDO ORÇ. NOMINAL', 'SALDO ORÇ. CORRIGIDO', 'PREV. FINANCEIRA', 'CUSTO AO TÉRMINO', 'DESVIO NOMINAL R$', 'DESVIO NOMINAL %', 'DESVIO CORRIGIDO R$', 'DESVIO CORRIGIDO %'],
-    ], [32, 16, 18, 16, 16, 20, 16, 20, 20, 18, 18, 18, 16, 18, 16]);
-
-    // CHECKLIST
-    addSh('CHECKLIST', [
-      ['CHECKLIST DE ÁREA COMUM'],
-      ['ÁREA/LOCAL: local físico | ITEM: descrição | 1º PRAZO: prazo original | PRAZO ATUAL: prazo vigente | DELTA: dias calculado | STATUS: OK / Pendente / Atenção / Não Conforme | RESPONSÁVEL | OBSERVAÇÃO | OCULTAR: S para esconder'],
-      ['ÁREA / LOCAL', 'ITEM', '1º PRAZO', 'PRAZO ATUAL', 'DELTA', 'STATUS', 'RESPONSÁVEL', 'OBSERVAÇÃO', 'OCULTAR'],
-    ], [20, 38, 14, 14, 10, 14, 20, 38, 10]);
-
-    window.XLSX.writeFile(wb, 'MODELO_BASE_SEMANAL_VAZIO.xlsx');
-    showToast('ok', '✅ Modelo em branco baixado!');
-  } catch (e) { showToast('err', '❌ Erro: ' + e.message); }
+  downloadFile('templates/BASE_SEMANAL_VAZIO.xlsx', 'BASE_SEMANAL_VAZIO.xlsx');
+  showToast('ok', '✅ Download iniciado!');
 }
 
 // ── Template com dados de exemplo ────────────────────────────────────────────
+// Quando o arquivo BASE_SEMANAL_DADOS.xlsx estiver na pasta /templates,
+// substituir o corpo desta função por:
+//   downloadFile('templates/BASE_SEMANAL_DADOS.xlsx', 'BASE_SEMANAL_DADOS.xlsx');
 
 export function baixarTemplateComDados() {
   try {
