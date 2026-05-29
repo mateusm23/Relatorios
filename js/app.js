@@ -2,7 +2,7 @@ import { goPage }          from './nav.js';
 import { showToast }        from './toast.js';
 import { loadImg, loadAnexo, removeAnexo, syncAnexoCaption } from './images.js';
 import { processarBase }    from './excel/reader.js';
-import { gerarXLSX, baixarTemplate, baixarTemplateEmBranco } from './excel/exporter.js';
+import { gerarXLSX, baixarTemplateComDados, baixarTemplateEmBranco } from './excel/exporter.js';
 import { gerarPDF }         from './pdf/builder.js';
 import { isoWeek }          from './utils.js';
 
@@ -89,7 +89,7 @@ function wireEvents() {
   });
   document.getElementById('btnTemplateDados')?.addEventListener('click', () => {
     closeModalTemplate();
-    baixarTemplate();
+    baixarTemplateComDados();
   });
   document.getElementById('btnSbGerar')?.addEventListener('click', gerarPDF);
   document.getElementById('btnSbXlsx')?.addEventListener('click', gerarXLSX);
