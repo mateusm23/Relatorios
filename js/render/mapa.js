@@ -6,6 +6,7 @@ export function getCatCls(cat, prefix = 'mc') {
   const s = String(cat || '').toLowerCase();
   if (s.includes('aprovou') || s.includes('aprovada') || s.includes('aprov')) return `${prefix}-aprov`;
   if (s.includes('liberado')) return `${prefix}-liberado`;
+  if (s.includes('reprov')) return `${prefix}-reprov`;
   if (s.includes('restrição') || s.includes('restricao')) return `${prefix}-restricao`;
   if (s.includes('estoque') || s.includes('est.')) return `${prefix}-estoque`;
   return `${prefix}-vazio`;
@@ -15,6 +16,7 @@ export function getCatAbrev(cat) {
   const s = String(cat || '').toLowerCase();
   if (s.includes('aprovou') || s.includes('aprovada')) return 'APROV.';
   if (s.includes('liberado')) return 'LIB.';
+  if (s.includes('reprov')) return 'REPROV.';
   if (s.includes('restrição') || s.includes('restricao')) return 'REST.';
   if (s.includes('estoque')) return 'EST.';
   return String(cat).slice(0, 5) || '—';
@@ -45,7 +47,8 @@ export function renderMapa() {
     ['#217A3C', 'Aprovou Vistoria'],
     ['#1A6EE8', 'Liberado'],
     ['#E2E8F0', 'Estoque'],
-    ['#B91C1C', 'Restrição']
+    ['#B91C1C', 'Restrição'],
+    ['#DC2626', 'Reprovado']
   ].map(([bg, lbl]) =>
     `<div style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--cinza)">
       <span style="width:12px;height:12px;border-radius:2px;background:${bg};display:inline-block"></span>${lbl}

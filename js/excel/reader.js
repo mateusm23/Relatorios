@@ -18,9 +18,20 @@ const ABA_MAP = {
 
 function toIsoDate(val) {
   const s = String(val || '').trim();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  if (!s) return '';
+  // ISO com ou sem horário: "2025-05-19" ou "2025-05-19 00:00:00"
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0, 10);
+  // Brasileiro DD/MM/AAAA ou americano M/D/AAAA
   const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  if (m) {
+    const [, a, b, y] = m;
+    // Se primeiro número > 12, certamente é DD/MM
+    if (parseInt(a) > 12) return `${y}-${b.padStart(2,'0')}-${a.padStart(2,'0')}`;
+    // Se segundo > 12, é MM/DD (formato americano)
+    if (parseInt(b) > 12) return `${y}-${a.padStart(2,'0')}-${b.padStart(2,'0')}`;
+    // Ambíguo: assume DD/MM (padrão brasileiro)
+    return `${y}-${b.padStart(2,'0')}-${a.padStart(2,'0')}`;
+  }
   return s;
 }
 
@@ -30,10 +41,22 @@ function norm(s) {
 
 function lerCapa(ws) {
   const setF = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
-  const raw2d = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+
+  // raw:true para capturar seriais de data Excel diretamente
+  const raw2d = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: true });
+
+  // Converte valor de célula para string — trata serial de data Excel
+  const cellStr = val => {
+    if (val === null || val === undefined || val === '') return '';
+    if (typeof val === 'number' && val > 20000) {
+      const d = window.XLSX?.SSF?.parse_date_code(val);
+      if (d) return `${d.y}-${String(d.m).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+    }
+    return String(val).trim();
+  };
 
   // ── Detecta formato antigo (coluna "CAMPO") ──────────────────────────────
-  const isOldFmt = raw2d.some(r => norm(r[0]) === 'CAMPO');
+  const isOldFmt = raw2d.some(r => norm(String(r[0] || '')) === 'CAMPO');
   if (isOldFmt) {
     const raw = window.XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
     raw.forEach(r => {
@@ -41,7 +64,6 @@ function lerCapa(ws) {
       const valor = String(r['VALOR'] || '').trim();
       if (!valor) return;
       if (['NOME','OBRA'].includes(campo))        setF('c_nome', valor);
-      if (campo === 'CODIGO')                     setF('c_cod',  valor);
       if (['INI','DATA INICIO','DATA INÃCIO'].includes(campo)) setF('c_ini', toIsoDate(valor));
       if (['FIM','DATA FIM'].includes(campo))     setF('c_fim',  toIsoDate(valor));
       if (campo.startsWith('SEMANA'))             setF('c_sem',  valor);
@@ -56,20 +78,18 @@ function lerCapa(ws) {
     return;
   }
 
-  // ── Formato novo: label em col A, valor em col B (ou col A da linha seguinte) ──
+  // ── Formato novo: label em col A, valor em col B ──────────────────────────
   const capaMap = {};
   const TEXT_BLOCKS = ['PONTOS POSITIVOS', 'PONTOS DE ATENCAO', 'ENCAMINHAMENTOS'];
 
   raw2d.forEach((row, idx) => {
     const labelRaw = String(row[0] || '').trim();
-    const valB     = String(row[1] || '').trim();
     if (!labelRaw || labelRaw.startsWith('=')) return;
-
-    const key = norm(labelRaw);
+    const key  = norm(labelRaw);
+    const valB = cellStr(row[1]);
     if (valB && !valB.startsWith('=')) {
       capaMap[key] = valB;
     } else {
-      // Campos de texto cujo conteúdo fica na linha seguinte (col A)
       const isTextBlock = TEXT_BLOCKS.some(tb => key.includes(norm(tb).split(' ')[0]) && key.length < 35);
       if (isTextBlock && raw2d[idx + 1]) {
         const nextA = String(raw2d[idx + 1][0] || '').trim();
@@ -80,14 +100,14 @@ function lerCapa(ws) {
 
   const get = (...keys) => keys.map(k => capaMap[norm(k)]).find(v => v) || '';
 
-  setF('c_nome',   get('OBRA', 'NOME'));
-  setF('c_obra',   get('CONSTRUTORA'));
-  setF('c_ger',    get('GERENCIADORA'));
-  setF('c_eng',    get('ENGENHEIRO'));
-  setF('c_ini',    toIsoDate(get('DATA INICIO', 'DATA INÍCIO', 'DATA INI')));
-  setF('c_fim',    toIsoDate(get('DATA FIM')));
-  setF('c_sem',    get('SEMANA', 'SEMANA No', 'SEMANA N'));
-  setF('c_avanco', get('AVANCO DE ENTREGAS', 'AVANÇO DE ENTREGAS'));
+  setF('c_nome',    get('OBRA', 'NOME'));
+  setF('c_obra',    get('CONSTRUTORA'));
+  setF('c_ger',     get('GERENCIADORA'));
+  setF('c_eng',     get('ENGENHEIRO'));
+  setF('c_ini',     toIsoDate(get('DATA INICIO', 'DATA INÍCIO', 'DATA INI')));
+  setF('c_fim',     toIsoDate(get('DATA FIM')));
+  setF('c_sem',     get('SEMANA', 'SEMANA No', 'SEMANA N'));
+  setF('c_avanco',  get('AVANCO DE ENTREGAS', 'AVANÇO DE ENTREGAS').replace('%', '').trim());
   setF('positivos', get('PONTOS POSITIVOS'));
   setF('atencao',   get('PONTOS DE ATENCAO', 'PONTOS DE ATENÇÃO'));
   setF('encam',     get('ENCAMINHAMENTOS'));
@@ -160,11 +180,12 @@ export async function processarBase(input) {
         let startRow = hasTitle ? 1 : 0;
         if (hasTitle) {
           const raw2d = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
-          // Pula linhas de instrução (células longas > 55 chars) para achar o cabeçalho real
+          // Cabeçalho real = primeira linha onde TODAS as células preenchidas são MAIÚSCULAS
+          // (linhas de exemplo têm texto misto: "Ex: Bloco 1", "Selecione ▼", etc.)
           for (let i = 1; i < Math.min(raw2d.length, 6); i++) {
-            const filled = raw2d[i].filter(v => String(v).trim()).length;
-            const hasLongCell = raw2d[i].some(v => String(v).trim().length > 55);
-            if (filled >= 2 && !hasLongCell) { startRow = i; break; }
+            const cells = raw2d[i].map(v => String(v).trim()).filter(Boolean);
+            const allCaps = cells.length >= 2 && cells.every(s => s === s.toUpperCase());
+            if (allCaps) { startRow = i; break; }
           }
         }
         const raw = window.XLSX.utils.sheet_to_json(ws, { defval: '', raw: true, range: startRow });
@@ -202,6 +223,11 @@ export async function processarBase(input) {
       const el = document.getElementById('c_avanco');
       if (el && !el.value) el.value = pct;
     }
+
+    // Se DATA FIM ou SEMANA vieram de fórmulas e chegaram vazios,
+    // dispara autoWeek para calculá-los a partir de DATA INÍCIO
+    const iniEl = document.getElementById('c_ini');
+    if (iniEl && iniEl.value) iniEl.dispatchEvent(new Event('change'));
 
     markDone(0);
     showToast('ok', `✅ ${found}/5 abas carregadas`);

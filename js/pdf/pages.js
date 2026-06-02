@@ -117,6 +117,7 @@ function catColor(cat) {
   if ((s.includes('não') || s.includes('nao')) && s.includes('aprov')) return { bg: '#B91C1C', fg: '#fff' };
   if (s.includes('aprov')) return { bg: '#217A3C', fg: '#fff' };
   if (s.includes('liberado') || s.includes('lib.')) return { bg: '#1A6EE8', fg: '#fff' };
+  if (s.includes('reprov')) return { bg: '#DC2626', fg: '#fff' };
   if (s.includes('restrição') || s.includes('restricao') || s.includes('rest.')) return { bg: '#B91C1C', fg: '#fff' };
   return { bg: '', fg: '' };
 }
@@ -181,6 +182,7 @@ function buildMapaPages(hdr, pgStart, total) {
     <div class="pleg-item"><div class="pleg-dot" style="background:#1A6EE8"></div>Liberado</div>
     <div class="pleg-item"><div class="pleg-dot" style="background:#E2E8F0;border:1px solid #cbd5e1"></div>Estoque</div>
     <div class="pleg-item"><div class="pleg-dot" style="background:#B91C1C"></div>Restrição</div>
+    <div class="pleg-item"><div class="pleg-dot" style="background:#DC2626"></div>Reprovado</div>
   </div>`;
 
   // Build all grid cells: bloco cells + resumo as last cell
