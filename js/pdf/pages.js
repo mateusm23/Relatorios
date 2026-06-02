@@ -1,6 +1,6 @@
 import { DB, MESES } from '../state.js';
 import { v, fk, normKey, escapeHtml, fmtDate, fmtBRL, fmtPct } from '../utils.js';
-import { buildBlocos, getCatCls, getCatAbrev } from '../render/mapa.js';
+import { buildBlocos, getCatCls, getCatAbrev, catColor, buildBlocoCell, buildResumoGeral, calcCellSize, buildLegenda } from '../render/mapa.js';
 import { calcStats, isReprov, getMes, getSem } from '../render/vistorias.js';
 
 function parseRawDate(val) {
@@ -110,83 +110,17 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
   </div>`;
 }
 
-// ── Mapa de Unidades ──────────────────────────────────────────────────────────
+// ── Mapa de Unidades ── (catColor, buildBlocoCell, buildResumoGeral importados de render/mapa.js)
 
-function catColor(cat) {
-  const s = String(cat || '').toLowerCase();
-  if ((s.includes('não') || s.includes('nao')) && s.includes('aprov')) return { bg: '#B91C1C', fg: '#fff' };
-  if (s.includes('aprov')) return { bg: '#217A3C', fg: '#fff' };
-  if (s.includes('liberado') || s.includes('lib.')) return { bg: '#1A6EE8', fg: '#fff' };
-  if (s.includes('reprov')) return { bg: '#DC2626', fg: '#fff' };
-  if (s.includes('restrição') || s.includes('restricao') || s.includes('rest.')) return { bg: '#B91C1C', fg: '#fff' };
-  return { bg: '', fg: '' };
-}
-
-function buildResumoGeral() {
-  const cats = {};
-  DB.unidades.forEach(r => {
-    const cat = String(fk(r, 'CATEGORIA', 'STATUS', 'SITUAÇÃO', 'SITUACAO') || '').trim() || 'SEM CATEGORIA';
-    cats[cat] = (cats[cat] || 0) + 1;
-  });
-  const total = DB.unidades.length;
-  const rows = Object.entries(cats)
-    .sort((a, b) => b[1] - a[1])
-    .map(([cat, qty]) => {
-      const pct = Math.round(qty / total * 100);
-      const { bg, fg } = catColor(cat);
-      const cellStyle = bg ? `background:${bg};color:${fg};` : '';
-      return `<tr>
-        <td style="font-weight:700;font-size:8.5px;padding:5px 8px;${cellStyle}">${cat.toUpperCase()}</td>
-        <td style="text-align:center;font-weight:700;font-size:8.5px;padding:5px 8px;${cellStyle}">${qty}</td>
-        <td style="text-align:center;font-weight:700;font-size:8.5px;padding:5px 8px;${cellStyle}">${pct}%</td>
-      </tr>`;
-    }).join('');
-  return `<div>
-    <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:11px;color:#1A2B45;margin-bottom:7px;text-align:center">Resumo Geral</div>
-    <table style="border-collapse:collapse;width:100%">
-      <thead><tr style="background:#1A2B45">
-        <th style="color:#fff;padding:6px 8px;text-align:left;font-size:8.5px;letter-spacing:.04em">SITUAÇÃO</th>
-        <th style="color:#fff;padding:6px 8px;text-align:center;font-size:8.5px">QTD.</th>
-        <th style="color:#fff;padding:6px 8px;text-align:center;font-size:8.5px">%</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
-  </div>`;
-}
-
-function buildBlocoCell(bloco, pavs) {
-  const pavNums = Object.keys(pavs).sort((a, b) => Number(b) - Number(a));
-  const allUnids = [...new Set(Object.values(pavs).flatMap(a => a.map(u => u.unid)))].sort();
-  let html = `<div style="margin-bottom:0">
-    <div style="font-family:'Sora',sans-serif;font-weight:700;font-size:10px;color:#1A2B45;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em">${bloco}</div>
-    <table class="pm-tbl">
-      <thead><tr><th>PAV</th>${allUnids.map(u => `<th>${u}</th>`).join('')}</tr></thead>
-      <tbody>`;
-  pavNums.forEach(pav => {
-    const map = {};
-    pavs[pav].forEach(({ unid, cat }) => map[unid] = cat);
-    html += `<tr><th>${pav}</th>${allUnids.map(u =>
-      `<td class="${getCatCls(map[u] || '', 'pm')}">${getCatAbrev(map[u] || '')}</td>`
-    ).join('')}</tr>`;
-  });
-  html += `</tbody></table></div>`;
-  return html;
-}
 
 function buildMapaPages(hdr, pgStart, total) {
   const pages = [];
   const blocos = buildBlocos(DB.unidades);
   const blocoKeys = Object.keys(blocos).sort();
-  const legenda = `<div class="pleg" style="margin-bottom:10px">
-    <div class="pleg-item"><div class="pleg-dot" style="background:#217A3C"></div>Aprovou Vistoria</div>
-    <div class="pleg-item"><div class="pleg-dot" style="background:#1A6EE8"></div>Liberado</div>
-    <div class="pleg-item"><div class="pleg-dot" style="background:#E2E8F0;border:1px solid #cbd5e1"></div>Estoque</div>
-    <div class="pleg-item"><div class="pleg-dot" style="background:#B91C1C"></div>Restrição</div>
-    <div class="pleg-item"><div class="pleg-dot" style="background:#DC2626"></div>Reprovado</div>
-  </div>`;
+  const legenda = buildLegenda();
 
-  // Build all grid cells: bloco cells + resumo as last cell
-  const cells = blocoKeys.map(b => buildBlocoCell(b, blocos[b]));
+  const size  = calcCellSize(blocos);
+  const cells = blocoKeys.map(b => buildBlocoCell(b, blocos[b], size));
   cells.push(buildResumoGeral());
 
   const grid = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start">${cells.map(c => `<div>${c}</div>`).join('')}</div>`;

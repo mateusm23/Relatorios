@@ -148,8 +148,10 @@ export async function processarBase(input) {
     const configName = wb.SheetNames.find(n => n.trim().toUpperCase() === 'CONFIG');
     if (configName) {
       const raw2d = window.XLSX.utils.sheet_to_json(wb.Sheets[configName], { header: 1, defval: '', raw: false });
-      // Categorias começam na linha 4 (índice 3): título + instrução + cabeçalho + dados
-      DB.categorias = raw2d.slice(3).map(r => String(r[0] || '').trim()).filter(Boolean);
+      // Linha 0=título, 1=instrução, 2=cabeçalho (CATEGORIA|COR), 3+=dados
+      DB.categorias = raw2d.slice(3)
+        .map(r => ({ name: String(r[0] || '').trim(), cor: String(r[1] || '').trim(), abrev: String(r[2] || '').trim() }))
+        .filter(c => c.name);
     }
 
     // ── CAPA ────────────────────────────────────────────────────────────────
