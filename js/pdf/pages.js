@@ -1,5 +1,5 @@
 import { DB, MESES } from '../state.js';
-import { v, fk, normKey, escapeHtml, fmtDate, fmtBRL, fmtPct } from '../utils.js';
+import { v, fk, normKey, escapeHtml, fmtDate, fmtK, fmtPct } from '../utils.js';
 import { buildBlocos, getCatCls, getCatAbrev, catColor, buildBlocoCell, buildResumoGeral, calcCellSize, buildLegenda } from '../render/mapa.js';
 import { calcStats, isReprov, getMes, getSem, parseRawDate, ddmm, buildDonutChart, buildHBarChart, buildStackedBars, buildLineChart, buildVistTotalContent, buildVistMesContent, buildVistSemContent } from '../render/vistorias.js';
 
@@ -79,6 +79,7 @@ function buildCapaPage(semStr, iniStr, fimStr, nome) {
     <div class="capal-info">
       <div class="capal-info-ttl">Relatório Semanal de Obra</div>
       ${v('c_obra') ? `<div class="capal-info-sub">Construtora: ${escapeHtml(v('c_obra'))}</div>` : ''}
+      ${v('c_ger')  ? `<div class="capal-info-sub" style="margin-top:-6px">Gerenciadora: ${escapeHtml(v('c_ger'))}</div>` : ''}
       <div class="capal-info-div"></div>
       <div class="capal-info-row">${escapeHtml(nome)}</div>
       <div class="capal-info-row-hl">${mesAno}</div>
@@ -216,39 +217,130 @@ function buildDelibPage(rows, cols, titulo, icoPg, bgHdr, hdr, pg, total) {
 // ── MFO ───────────────────────────────────────────────────────────────────────
 
 function buildMfoPage(hdr, pg, total) {
-  const cols = Object.keys(DB.mfo[0]);
-  const mfoRows = DB.mfo.map((r, i) => {
-    const isTotal = i === 0;
-    return `<tr class="${isTotal ? 'pt-total' : ''}">${cols.map(c => {
-      const vv = r[c];
+  const cols         = Object.keys(DB.mfo[0]);
+  const firstTextCol = cols.find(c => typeof DB.mfo[0][c] === 'string');
+  const TRUNC        = 29;
+  const trunc        = s => { const t = String(s || ''); return t.length > TRUNC ? t.slice(0, TRUNC) + '…' : t; };
+
+  // Filtra linhas TOTAL importadas e calcula total próprio
+  const dataRows = DB.mfo.filter(r =>
+    !firstTextCol || !String(r[firstTextCol] || '').toUpperCase().includes('TOTAL')
+  );
+
+  const calcTotalRow = () => {
+    const t = {};
+    cols.forEach(c => {
+      if (c === firstTextCol) { t[c] = 'TOTAL'; return; }
       const kk = normKey(c);
-      const isNum = typeof vv === 'number';
-      const pctCol = kk.includes('DESVIO') || kk.includes('%');
-      const negativo = isNum && vv < 0;
-      if (pctCol) {
-        const pv = fmtPct(vv);
-        const color = isTotal ? (negativo ? '#FCA5A5' : '#F5C800') : (negativo ? '#B91C1C' : '#217A3C');
-        return `<td style="text-align:center;font-weight:700;color:${color};font-size:8px">${pv}</td>`;
-      }
-      if (isNum) {
-        const color = isTotal ? 'inherit' : (negativo ? '#B91C1C' : 'inherit');
-        return `<td style="text-align:right;font-size:8px;color:${color};white-space:nowrap">${fmtBRL(vv)}</td>`;
-      }
-      return `<td style="font-size:8.5px;white-space:normal;max-width:120px;font-weight:${isTotal ? '700' : '400'}">${vv || '—'}</td>`;
-    }).join('')}</tr>`;
+      if (kk.includes('%')) { t[c] = null; return; }
+      // Soma só os valores numéricos — ignora células em branco ou string
+      const nums = dataRows.map(r => r[c]).filter(v => typeof v === 'number');
+      t[c] = nums.length > 0 ? nums.reduce((s, v) => s + v, 0) : '';
+    });
+    cols.filter(c => normKey(c).includes('%') && normKey(c).includes('DESVIO')).forEach(pctC => {
+      const kk  = normKey(pctC);
+      const rsC = cols.find(c2 => {
+        const k2 = normKey(c2);
+        return k2.includes('DESVIO') && k2.includes('R$') &&
+          (k2.includes('NOMINAL') === kk.includes('NOMINAL')) &&
+          (k2.includes('CORRIGIDO') === kk.includes('CORRIGIDO'));
+      });
+      const baseC = cols.find(c2 => {
+        const k2 = normKey(c2);
+        return kk.includes('NOMINAL')
+          ? k2.includes('VALOR ORÇADO') || k2.includes('VALOR ORCADO')
+          : k2.includes('VALOR ATUALIZADO');
+      });
+      if (rsC && baseC && t[baseC]) t[pctC] = t[rsC] / t[baseC];
+    });
+    return t;
+  };
+
+  const totalRow = calcTotalRow();
+  const allRows  = [totalRow, ...dataRows];
+
+  // KPIs extraídos do totalRow calculado
+  const findKpi = (...terms) => {
+    for (const t of terms) {
+      const nt = normKey(t);
+      const k  = cols.find(c => normKey(c).includes(nt));
+      if (k !== undefined && totalRow[k] != null && totalRow[k] !== '') return totalRow[k];
+    }
+    return null;
+  };
+
+  const orcamento = findKpi('VALOR ORÇADO', 'VALOR ORCADO');
+  const tendCusto = findKpi('CUSTO AO TÉRMINO', 'CUSTO AO TERMINO', 'CUSTO AO TER');
+  const desvioRs  = findKpi('DESVIO NOMINAL R$', 'DESVIO NOMINAL R');
+  const desvioPct = findKpi('DESVIO NOMINAL %');
+
+  const asNum  = v => typeof v === 'number' ? v : parseFloat(String(v || '0').replace('%', ''));
+  const kpiCls = v => { const n = asNum(v); return (isNaN(n) || n === 0) ? 'pk-azul' : n < 0 ? 'pk-verm' : 'pk-verde'; };
+
+  const kpis = [
+    { label: 'Orçamento',          val: fmtK(orcamento),   cls: 'pk-azul' },
+    { label: 'Tendência de Custo', val: fmtK(tendCusto),   cls: 'pk-azul' },
+    { label: 'Desvio em R$',       val: fmtK(desvioRs),    cls: kpiCls(desvioRs)  },
+    { label: 'Desvio em %',        val: fmtPct(desvioPct), cls: kpiCls(desvioPct) },
+  ];
+
+  // Larguras fixas via colgroup
+  const textPct = 14;
+  const numPct  = ((100 - textPct) / (cols.length - 1)).toFixed(1);
+
+  // Formata célula com bordas verticais e alinhamento central
+  const fmtCell = (c, vv, isTotal, isLast) => {
+    const kk       = normKey(c);
+    const isNum    = typeof vv === 'number';
+    const pctCol   = kk.includes('%');
+    const isText   = c === firstTextCol;
+    const negativo = isNum && vv < 0;
+    const border   = isLast ? '' : `border-right:1px solid ${isTotal ? 'rgba(255,255,255,.12)' : '#CBD5E1'};`;
+    const align    = isText ? 'text-align:left;' : 'text-align:center;';
+    const pad      = 'padding:3px 4px;';
+    const fs       = isText ? 'font-size:7.5px;' : 'font-size:7px;';
+
+    if (isText) {
+      return `<td style="${align}${border}${pad}${fs}font-weight:${isTotal ? '700' : '400'}">${trunc(vv)}</td>`;
+    }
+    if (pctCol) {
+      if (!isNum) return `<td style="${align}${border}${pad}${fs}">—</td>`;
+      const clr = isTotal ? (negativo ? '#FCA5A5' : '#F5C800') : (negativo ? '#B91C1C' : '#217A3C');
+      return `<td style="${align}${border}${pad}${fs}font-weight:700"><span style="color:${clr}">${fmtPct(vv)}</span></td>`;
+    }
+    if (isNum) {
+      const clr = !isTotal && negativo ? '#B91C1C' : null;
+      return `<td style="${align}${border}${pad}${fs}white-space:nowrap">${clr ? `<span style="color:${clr}">` : ''}${fmtK(vv)}${clr ? '</span>' : ''}</td>`;
+    }
+    return `<td style="${align}${border}${pad}${fs}">—</td>`;
+  };
+
+  const mfoRows = allRows.map((r, i) => {
+    const isTotal = i === 0;
+    return `<tr class="${isTotal ? 'pt-total' : ''}">${cols.map((c, ci) =>
+      fmtCell(c, r[c], isTotal, ci === cols.length - 1)
+    ).join('')}</tr>`;
   }).join('');
 
   return `<div class="pdf-page-land">
     ${hdr('MFO — Monitoramento Financeiro de Obra', pg, total)}
     ${sec('💰', 'MFO — MONITORAMENTO FINANCEIRO DE OBRA')}
-    <div style="overflow-x:hidden">
-      <table class="pt" style="font-size:8px">
-        <thead><tr>${cols.map(c =>
-          `<th style="font-size:7.5px;padding:5px;white-space:normal;min-width:${c.length > 15 ? '75px' : '50px'}">${c}</th>`
-        ).join('')}</tr></thead>
-        <tbody>${mfoRows}</tbody>
-      </table>
+    <div class="pk-row pk4">
+      ${kpis.map(k => `
+        <div class="pk ${k.cls}" style="padding:5px 4px">
+          <div class="pk-lbl">${k.label}</div>
+          <div class="pk-val" style="font-size:16px">${k.val || '—'}</div>
+        </div>`).join('')}
     </div>
+    <table class="pt" style="table-layout:fixed;width:100%">
+      <colgroup>${cols.map((_, i) =>
+        `<col style="width:${i === 0 ? textPct : numPct}%">`).join('')}
+      </colgroup>
+      <thead><tr>${cols.map((c, i) =>
+        `<th style="font-size:6.5px;padding:4px 3px;text-align:center;white-space:normal;word-break:break-word;line-height:1.3;${i < cols.length - 1 ? 'border-right:1px solid rgba(255,255,255,.18)' : ''}">${c}</th>`
+      ).join('')}</tr></thead>
+      <tbody>${mfoRows}</tbody>
+    </table>
     ${footer()}
   </div>`;
 }
