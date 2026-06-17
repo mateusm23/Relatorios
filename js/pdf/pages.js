@@ -32,12 +32,16 @@ export function countPages() {
   if (DB.vistorias.length) n += 3;
   if (v('parecer'))        n++;
   if (DB.delib.length) {
-    const pend = DB.delib.filter(r => !String(fk(r, 'STATUS') || '').toLowerCase().includes('conclu'));
-    const conc = DB.delib.filter(r =>  String(fk(r, 'STATUS') || '').toLowerCase().includes('conclu'));
+    const visiveis = DB.delib.filter(r => String(fk(r, 'OCULTAR') || '').trim().toLowerCase() !== 'sim');
+    const pend = visiveis.filter(r => !String(fk(r, 'STATUS') || '').toLowerCase().includes('conclu'));
+    const conc = visiveis.filter(r =>  String(fk(r, 'STATUS') || '').toLowerCase().includes('conclu'));
     n += Math.max(1, Math.ceil(pend.length / 14)) + (conc.length ? Math.ceil(conc.length / 14) : 0);
   }
   if (DB.mfo.length)       n++;
-  if (DB.checklist.length) n += Math.ceil(DB.checklist.length / 20);
+  if (DB.checklist.length) {
+    const visiveis = DB.checklist.filter(r => String(fk(r, 'OCULTAR') || '').trim().toLowerCase() !== 'sim');
+    n += Math.ceil(visiveis.length / 20);
+  }
   if (DB.anexos.some(Boolean)) n++;
   return n;
 }
@@ -445,10 +449,12 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
 
   // Deliberações
   if (DB.delib.length) {
+    const oculto = r => String(fk(r, 'OCULTAR') || '').trim().toLowerCase() === 'sim';
     const concluido = r => String(fk(r, 'STATUS') || '').toLowerCase().includes('conclu');
-    const pend = DB.delib.filter(r => !concluido(r));
-    const conc = DB.delib.filter(concluido);
-    const cols = Object.keys(DB.delib[0]);
+    const visiveis = DB.delib.filter(r => !oculto(r));
+    const pend = visiveis.filter(r => !concluido(r));
+    const conc = visiveis.filter(concluido);
+    const cols = Object.keys(visiveis[0] || DB.delib[0]).filter(c => normKey(c) !== 'OCULTAR');
     const ROWS = 14;
 
     for (let i = 0; i < Math.max(1, Math.ceil(pend.length / ROWS)); i++) {
@@ -471,13 +477,14 @@ export function buildPages(semStr, iniStr, fimStr, nome) {
 
   // Checklist
   if (DB.checklist.length) {
-    const cols = Object.keys(DB.checklist[0]).filter(c => normKey(c) !== 'OCULTAR');
+    const visiveis = DB.checklist.filter(r => String(fk(r, 'OCULTAR') || '').trim().toLowerCase() !== 'sim');
+    const cols = Object.keys(visiveis[0] || DB.checklist[0]).filter(c => normKey(c) !== 'OCULTAR');
     const ROWS = 20;
-    const nPgs = Math.ceil(DB.checklist.length / ROWS);
+    const nPgs = Math.ceil(visiveis.length / ROWS);
     for (let p = 0; p < nPgs; p++) {
-      const chunk = DB.checklist.slice(p * ROWS, (p + 1) * ROWS);
+      const chunk = visiveis.slice(p * ROWS, (p + 1) * ROWS);
       const pgLabel = nPgs > 1 ? `Checklist de Área Comum (Parte ${p + 1}/${nPgs})` : 'Checklist de Área Comum';
-      const secLabel = nPgs > 1 ? `CHECKLIST DE ÁREA COMUM — ${p * ROWS + 1} a ${Math.min((p + 1) * ROWS, DB.checklist.length)} de ${DB.checklist.length}` : 'CHECKLIST DE ÁREA COMUM';
+      const secLabel = nPgs > 1 ? `CHECKLIST DE ÁREA COMUM — ${p * ROWS + 1} a ${Math.min((p + 1) * ROWS, visiveis.length)} de ${visiveis.length}` : 'CHECKLIST DE ÁREA COMUM';
       pages.push({ landscape: true, html: buildChecklistPage(chunk, cols, pgLabel, secLabel, hdr, pg++, total) });
     }
   }

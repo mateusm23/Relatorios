@@ -1,5 +1,5 @@
 import { DB } from '../state.js';
-import { normKey, fmtDate } from '../utils.js';
+import { normKey, fmtDate, fk } from '../utils.js';
 import { markDone } from '../nav.js';
 
 const WIDE_COLS = ['DESC', 'OBS', 'ITEM', 'AREA', 'LOCAL'];
@@ -16,7 +16,8 @@ function statusChkTag(val) {
 }
 
 export function renderChk() {
-  const data = DB.checklist;
+  const oculto = r => String(fk(r, 'OCULTAR') || '').trim().toLowerCase() === 'sim';
+  const data = DB.checklist.filter(r => !oculto(r));
   if (!data.length) return;
   const cols = Object.keys(data[0]).filter(c => normKey(c) !== 'OCULTAR');
   const trs = data.map(r => `<tr>${cols.map(c => {

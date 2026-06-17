@@ -37,7 +37,7 @@ export async function gerarPDF() {
       const H = isLand ? 794  : 1123;
 
       const canvas = await window.html2canvas(container.firstElementChild, {
-        scale: 2, useCORS: true, allowTaint: true,
+        scale: 3, useCORS: true, allowTaint: true,
         backgroundColor: '#ffffff', logging: false,
         width: W, height: H, windowWidth: W,
       });

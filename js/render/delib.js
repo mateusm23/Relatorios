@@ -13,7 +13,7 @@ function statusDelibTag(val) {
 
 function buildTable(rows, ttl, ico, bg) {
   if (!rows.length) return '';
-  const cols = Object.keys(rows[0]);
+  const cols = Object.keys(rows[0]).filter(c => normKey(c) !== 'OCULTAR');
   const trs = rows.map(r => `<tr>${cols.map(c => {
     const vv = r[c];
     const kk = normKey(c);
@@ -41,7 +41,8 @@ function buildTable(rows, ttl, ico, bg) {
 }
 
 export function renderDelib() {
-  const data = DB.delib;
+  const oculto = r => String(fk(r, 'OCULTAR') || '').trim().toLowerCase() === 'sim';
+  const data = DB.delib.filter(r => !oculto(r));
   if (!data.length) return;
   const concluido = r => String(fk(r, 'STATUS') || '').toLowerCase().includes('conclu');
   const pend = data.filter(r => !concluido(r));
