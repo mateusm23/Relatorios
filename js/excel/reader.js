@@ -3,7 +3,7 @@ import { nrow, fk } from '../utils.js';
 import { showToast } from '../toast.js';
 import { markDone } from '../nav.js';
 import { renderMapa }   from '../render/mapa.js';
-import { renderVis, isAprov }    from '../render/vistorias.js';
+import { renderVis }    from '../render/vistorias.js';
 import { renderDelib }  from '../render/delib.js';
 import { renderMfo }    from '../render/mfo.js';
 import { renderChk }    from '../render/checklist.js';
@@ -107,7 +107,13 @@ function lerCapa(ws) {
   setF('c_ini',     toIsoDate(get('DATA INICIO', 'DATA INÍCIO', 'DATA INI')));
   setF('c_fim',     toIsoDate(get('DATA FIM')));
   setF('c_sem',     get('SEMANA', 'SEMANA No', 'SEMANA N'));
-  setF('c_avanco',  get('AVANCO DE ENTREGAS', 'AVANÇO DE ENTREGAS').replace('%', '').trim());
+  // Valor da planilha entra só como ponto de partida — é recalculado logo
+  // abaixo (aprovadas + estoque) assim que UNIDADES/VISTORIAS são lidas,
+  // a menos que o usuário já tenha editado o campo manualmente.
+  const elAvancoCapa = document.getElementById('c_avanco');
+  if (elAvancoCapa && !elAvancoCapa.dataset.userEdited) {
+    elAvancoCapa.value = get('AVANCO DE ENTREGAS', 'AVANÇO DE ENTREGAS').replace('%', '').trim();
+  }
   setF('positivos', get('PONTOS POSITIVOS'));
   setF('atencao',   get('PONTOS DE ATENCAO', 'PONTOS DE ATENÇÃO'));
   setF('encam',     get('ENCAMINHAMENTOS'));
@@ -210,20 +216,22 @@ export async function processarBase(input) {
     renderMfo();
     renderChk();
 
-    // ── Avanço de entregas (calculado pelo JS como fallback) ─────────────────
-    if (DB.unidades.length > 0 && DB.vistorias.length > 0) {
-      const aprovSet = new Set(
-        DB.vistorias.filter(isAprov)
-          .map(r => String(fk(r, 'UNIDADE', 'UNID') || '').trim().toUpperCase())
-          .filter(Boolean)
-      );
-      const dispBase = DB.unidades.filter(r => {
-        const cat = String(fk(r, 'CATEGORIA', 'STATUS', 'SITUAÇÃO', 'SITUACAO') || '').toLowerCase();
-        return !cat.includes('estoque');
-      }).length;
-      const pct = dispBase > 0 ? Math.round(aprovSet.size / dispBase * 100) : 0;
+    // ── Avanço de entregas: % = (aprovadas + estoque) / total de unidades ────
+    // Usa a CATEGORIA de cada unidade na aba UNIDADES — a mesma fonte do
+    // Resumo Geral do Mapa de Unidades — em vez de cruzar com VISTORIAS.
+    // VISTORIAS é um histórico de inspeções e pode conter aprovações antigas
+    // de unidades que já mudaram de status, inflando a contagem.
+    if (DB.unidades.length > 0) {
+      const catOf = r => String(fk(r, 'CATEGORIA', 'STATUS', 'SITUAÇÃO', 'SITUACAO') || '').toLowerCase();
+      const aprovadas    = DB.unidades.filter(r => catOf(r).includes('aprov')).length;
+      const estoqueCount = DB.unidades.filter(r => catOf(r).includes('estoque')).length;
+      const total = DB.unidades.length;
+      const pct = total > 0 ? Math.min(100, Math.round((aprovadas + estoqueCount) / total * 100)) : 0;
+
+      DB.avancoStats = { aprovadas, estoque: estoqueCount, total };
+
       const el = document.getElementById('c_avanco');
-      if (el && !el.value) el.value = pct;
+      if (el && !el.dataset.userEdited) el.value = pct;
     }
 
     // Se DATA FIM ou SEMANA vieram de fórmulas e chegaram vazios,

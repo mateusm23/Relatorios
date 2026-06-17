@@ -3,7 +3,8 @@ export const DB = {
   categorias: [],
   parecer: '',
   anexos: Array(6).fill(null),
-  foto: null, logo: null
+  foto: null, logo: null,
+  avancoStats: null // { aprovadas, estoque, total } — usado pra desenhar a barra segmentada da capa
 };
 
 export const MESES = [

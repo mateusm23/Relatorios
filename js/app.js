@@ -72,6 +72,14 @@ export function updateCapaPreview() {
 
   const nome   = v('c_nome');
   const avanco = parseInt(v('c_avanco')) || 0;
+  const elAvanco  = document.getElementById('c_avanco');
+  const isManual  = !!(elAvanco && elAvanco.dataset.userEdited);
+  const stats     = !isManual ? DB.avancoStats : null;
+  const aprovPct   = stats && stats.total > 0 ? stats.aprovadas / stats.total * 100 : avanco;
+  const estoquePct = stats && stats.total > 0 ? stats.estoque   / stats.total * 100 : 0;
+  const avancoCaption = stats && stats.total > 0
+    ? `<span style="color:#F5C800">●</span> ${stats.aprovadas} aprovadas&nbsp;&nbsp;<span style="color:#5B9BD5">●</span> ${stats.estoque} estoque <span style="opacity:.7">· de ${stats.total} unid.</span>`
+    : '';
   const semStr = v('c_sem') || 'XX';
   const iniStr = v('c_ini') ? new Date(v('c_ini') + 'T12:00:00').toLocaleDateString('pt-BR') : '';
   const fimStr = v('c_fim') ? new Date(v('c_fim') + 'T12:00:00').toLocaleDateString('pt-BR') : '';
@@ -92,16 +100,17 @@ export function updateCapaPreview() {
         : `<div style="font-family:'Sora',sans-serif;font-weight:800;font-size:22px;color:#fff;letter-spacing:.06em">TRINUS</div>`}
     </div>
     ${avanco > 0 ? `
-    <div style="position:absolute;top:130px;left:34px;max-width:268px;z-index:5">
+    <div style="position:absolute;top:130px;left:34px;width:236px;z-index:5">
       <div style="background:rgba(255,255,255,.1);border-radius:10px;padding:11px 14px;border:1px solid rgba(255,255,255,.12)">
         <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,.45);text-transform:uppercase;letter-spacing:.1em;margin-bottom:4px">Avanço de Entregas</div>
         <div style="display:flex;align-items:center;gap:12px">
-          <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:26px;color:#F5C800">${avanco}%</div>
-          <div style="flex:1">
-            <div style="background:rgba(255,255,255,.18);border-radius:4px;height:7px;overflow:hidden">
-              <div style="width:${avanco}%;height:100%;background:#F5C800;border-radius:4px"></div>
+          <div style="font-family:'Sora',sans-serif;font-weight:800;font-size:26px;color:#F5C800;flex-shrink:0">${avanco}%</div>
+          <div style="flex:1;min-width:0">
+            <div style="background:rgba(255,255,255,.18);border-radius:4px;height:7px;overflow:hidden;display:flex">
+              <div style="width:${aprovPct}%;height:100%;background:#F5C800"></div>
+              <div style="width:${estoquePct}%;height:100%;background:#5B9BD5"></div>
             </div>
-            <div style="font-size:7px;color:rgba(255,255,255,.35);margin-top:2px">unid. aprovadas / disponíveis</div>
+            ${avancoCaption ? `<div style="font-size:7px;color:rgba(255,255,255,.5);margin-top:2px">${avancoCaption}</div>` : ''}
           </div>
         </div>
       </div>
@@ -138,12 +147,21 @@ function closeModalTemplate() {
 function wireEvents() {
   // Navegação sidebar
   for (let i = 0; i < 9; i++) {
-    document.getElementById('nav' + i)?.addEventListener('click', () => goPage(i));
+    document.getElementById('nav' + i)?.addEventListener('click', () => {
+      goPage(i);
+      // Ao entrar na Capa, a prévia pode ter ficado com escala 0 (calculada
+      // enquanto a página estava escondida) — recalcula ao tornar visível.
+      if (i === 1) updateCapaPreview();
+    });
   }
 
   // Botões de navegação nas páginas
   document.querySelectorAll('[data-go]').forEach(btn => {
-    btn.addEventListener('click', () => goPage(Number(btn.dataset.go)));
+    btn.addEventListener('click', () => {
+      const n = Number(btn.dataset.go);
+      goPage(n);
+      if (n === 1) updateCapaPreview();
+    });
   });
 
   // Header + sidebar actions
@@ -195,6 +213,13 @@ function wireEvents() {
   ['c_nome','c_ini','c_fim','c_sem','c_eng','c_obra','c_ger','c_avanco'].forEach(id => {
     document.getElementById(id)?.addEventListener('input',  updateCapaPreview);
     document.getElementById(id)?.addEventListener('change', updateCapaPreview);
+  });
+
+  // Marca edição manual do Avanço de Entregas — assim o cálculo automático
+  // (ao subir uma nova base) não sobrescreve um valor digitado pelo usuário.
+  // Preenchimentos via script (reader.js) usam .value direto e não disparam 'input'.
+  document.getElementById('c_avanco')?.addEventListener('input', function () {
+    this.dataset.userEdited = '1';
   });
 
   // Persistência — salva ao alterar qualquer campo
