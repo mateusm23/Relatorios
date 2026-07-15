@@ -14,8 +14,9 @@ export function calcStats(data) {
   const a = data.filter(isAprov).length;
   const rep = data.filter(isReprov).length;
   const n = data.filter(isNC).length;
-  const pct = x => t ? Math.round(x / t * 100) + '%' : '0%';
-  return { t, a, r: rep, n, pa: pct(a), pr: pct(rep), pn: pct(n) };
+  const decididas = a + rep; // exclui não comparecimento — base p/ taxa aprov./reprov.
+  const pct = (x, base) => base ? Math.round(x / base * 100) + '%' : '0%';
+  return { t, a, r: rep, n, pa: pct(a, decididas), pr: pct(rep, decididas), pn: pct(n, t) };
 }
 
 export function parseRawDate(val) {
@@ -198,6 +199,10 @@ export function buildVistTotalContent(vis) {
       <div class="pk pk-verde"><div class="pk-lbl">Taxa Aprov.</div><div class="pk-val">${s.pa}</div></div>
       <div class="pk pk-verm"><div class="pk-lbl">Taxa Reprov.</div><div class="pk-val">${s.pr}</div></div>
       <div class="pk pk-lrnj"><div class="pk-lbl">Taxa NC</div><div class="pk-val">${s.pn}</div></div>
+    </div>
+    <div style="font-size:9px;color:#64748B;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:8px 12px;margin-bottom:16px;line-height:1.5">
+      <strong style="color:#217A3C">Taxa Aprov.</strong> e <strong style="color:#B91C1C">Taxa Reprov.</strong> = % sobre vistorias com comparecimento (aprovadas + reprovadas), sem contar não comparecimento &nbsp;·&nbsp;
+      <strong style="color:#C05621">Taxa NC</strong> = % de não comparecimento sobre o total de vistorias
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
       <div style="background:#F8FAFC;border-radius:10px;padding:14px 16px;border:1px solid #E2E8F0">
